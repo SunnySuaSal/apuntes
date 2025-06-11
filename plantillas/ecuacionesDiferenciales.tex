@@ -1,0 +1,108 @@
+\documentclass[a4paper, 12pt]{article}
+
+%Paquetes recomendados
+\usepackage[utf8]{inputenc} %Para acentos en español
+\usepackage[T1]{fontec}
+\usepackage[spanish]{babel} %Idioma español
+\usepackage{amsmath} %Matemáticas avanzadas
+\usepackage{amsfonts} %Conjuntos numéricos
+\usepackage{amssymb} %símbolos extra
+\usepackage{geometry} %Control de márgenes
+\usepackage{physics} %Notación elegante de derivadas (opcional)
+\usepackage{hyperref} %Para enlaces e índice interactivo
+
+\geomety{top=2.5cm, bottom=2.5cm, left=3cm, right=3cm}
+
+%Comandos personalizados para mejorar presentación
+\newcommand{\orden}[1]{\textbf{Orden:} #1}
+\newcommand{\grado}[1]{\textbf{Grado:} #1}
+\newcommand{\solucion}{\textbf{Solución:} }
+
+\begin{document}
+  %Portada
+  \begin{titlepage}
+    \centering
+    \vspace*{4cm}
+    {\large \textbf{Ecuaciones Diferenciales} \par}
+    \vspace{1.5cm}
+    {\large Curso de Cálculo D \par}
+    \vspace{2cm}
+    {\large Elaborado por: Sunny Saldaña \par}
+    \vspace{1.5cm}
+    {\large Fecha: \today \par}
+    \vfill
+  \end{titlepage}
+
+  %índice autimático
+  \tableofcontents
+  \newpage
+
+  %Sección de introducción
+  \section{Introducción}
+  En este documento se estudian las ecuaciones diferenciales, sus tipos, orden, grado y métodos de solución.
+
+  %Sección de definiciones
+  \section{Definiciones Básicas}
+  \subsection{Orden de una derivada}
+  El \textbf{orden} de una derivada indica cuántas veces se ha derivado la función. Ejemplos:
+  \begin{itemize}
+    \item $\dv{y}{x}$ es una derivada de orden 1.
+    \item $\dv[2]{y}{x}$ es una derivada de orden 2.
+    \item $\dv[n]{y}{x}$ es una derivada de orden $n$.
+  \end{itemize}
+
+  \subsection{Orden de una Ecuación Diferencial}
+  El \textbf{orden de una ecuación diferencial} es el orden de la derivada de mayor nivel que aparece en la ecuación.
+
+  \subsection{Grado de una Ecuación Diferencial}
+  El \textbf{grado de una ecuación diferencial} es el exponente de la derivada de mayor orden, siempre que la ecuación esté despejada
+  y sea polinómica en las derivadas.
+
+  %Sección de ejemplos
+  \section{Ejemplos de Identificación de Orden y Grado}
+  \subsection{Ejemplo 1}
+  \[
+  \frac{d^2y}{dx^2} + \frac{dy}{dx} = e^x
+  \]
+  \orden{2} \quad \grado{1}
+
+  \subsection{Ejemplo 2}
+  \[ 
+  \left( \frac{dy}{dx} \right)^3 + y = \sin(x)
+  \]
+  \orden{1} \quad \grado{3}
+
+  \subsection{Ejemplo 3}
+  \[ 
+  \sqrt{\frac{d^2y}{dx^2} + \frac{dy}{dx} = x^2}
+  \]
+  \orden{2} \quad \grado{No definido} (No es polinómica en la derivada)
+
+  %Sección de procedimientos
+  \section{Resolución de Ecuaciones Diferenciales}
+  \subsection{Ejemplo resuelto paso a paso}
+  
+  \ejemplo Reslver la ecuación diferencial:
+  \[ 
+  \dv{y}{x} + y = e^x
+  \]
+
+  \solucion
+
+  \begin{align*}
+    \dv{y}{x} + y &= e^x \\
+    \text{Factor integrante: } \mu(x) &= e^{\int 1 \, dx} = e^{x} \\
+    \text{Multiplicamos toda la ecuación por } e^x: \quad & e^x \dv{y}{x} + e^x y = e^{2x} \\
+    \text{Lado izquierdo es derivada del producto:} \quad & \dv{}{x} \left( e^x y \right) = e^{2x} \\
+    \text{Integramos:} \quad & e^x y = \int e^{2x} dx = \frac{e^{2x}}{2} + C \\
+    \text{Despejamos y:} \quad & y(x) = \frac{e^{2x}}{2e^x} + \frac{C}{e^x} = \frac{e^{x}}{2} + C e^{-x}
+  \end{align*}
+
+  \newpage
+
+  %Sección final
+  \section{Conlusión}
+  Este documento presenta los conceptos básicos y ejemplos escenciales para entender el orden, grado
+  y resolución de ecuaciones diferenciales de primer y segundo orden.
+
+\end{document}
