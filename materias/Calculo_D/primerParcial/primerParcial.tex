@@ -1,0 +1,131 @@
+
+\documentclass[12pt]{article} %Tipo de documento (puede ser book, report, etc.)
+
+\usepackage[utf8]{inputenc} %Codificación de caracteres (UTF-8)
+\usepackage{amsmath, amssymb, physics} %Paquetes para expresiones matemáticas
+\usepackage{graphicx} %Para insertar imágenes
+\usepackage[spanish]{babel} %Optimiza el typesetting para documentos en español
+\usepackage[letterpaper, left=1in, right=1in, top=1in, bottom=1in]{geometry}
+%Para abarcar más hoja horizontalmente
+\usepackage{booktabs} %Optimiza trabajar con tablas y agrega algunos comandos
+\usepackage{multirow} %Para crear celdas tabulares que abarcan múltiples filas
+\usepackage{float} %Mayor control sobre dónde se colocan las figuras y tablas
+\usepackage{caption} %Mayor control de las captions de figuras y tablas
+\usepackage{colortbl} %Para colores en tablas
+\usepackage{xcolor} %Opcional, pero útil para definir colores personalizados
+\definecolor{paleYellow}{RGB}{255, 255, 180} %Ejemplo con amarillo pálido
+\usepackage{hyperref}
+\usepackage{enumitem}
+
+%Preámbulo
+\title{Apuntes Cálculo D Primer parcial}
+\author{Suárez Saldaña, Jorge Alberto \\ Matrícula: 355992}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Definiciones}
+
+\begin{description}
+  \item[Ecuación Diferencial:] Es aquella ecuación que contiene derivadas o diferenciales.
+
+  \item[Orden de una derivada:] Se refiere a cuántas veces se ha derivado una función.
+    \begin{table}[H]
+      \centering
+    \begin{tabular}{cc}
+      $\dv{y}{x} \rightarrow \text{1er orden}$ & $\dv[3]{y}{x} \rightarrow \text{3er orden}$ \\[0.5em]
+      $\dv[2]{y}{x} \rightarrow \text{2do orden}$ & $\dv[n]{y}{x} \rightarrow \text{n orden}$
+    \end{tabular}
+  \end{table}
+
+  \item[Orden de una ecuación diferencial:] Es el orden de la derivada de mayor orden contenida en la ecuación.
+    \begin{table}[H]
+      \centering
+    \begin{tabular}{cc}
+      $F(x,y,y^{\prime}) = 0 \rightarrow \text{Primer orden}$ & 
+      $F(x,y,y^{\prime},y^{\prime \prime}) = 0 \rightarrow \text{Segundo orden}$ \\[0.5em]
+      $F(x,y,y^{\prime},y^{\prime \prime},y^{\prime \prime \prime}) = 0 \rightarrow \text{Tercer orden}$
+    \end{tabular}
+  \end{table}
+
+\item[Grado de una ecuación diferencial:] Es la potencia a la que está elevada la derivada de mayor orden en la ecuación, 
+  siempre y cuando esta esté dada en forma polinomial.
+
+  Diferenciándose en 2 grupos principales:
+  \begin{itemize}
+    \item Lineales: 
+      \begin{itemize}
+        \item La variable dependiente $y$ y todas sus derivadas son de 1er grado.
+        \item Cada coeficiente de $y$ y sus derivadas dependen solamente de la variable independiente x.
+      \end{itemize}
+    \item No lineales: Las que no cumplen con las propiedades anteriores.
+  \end{itemize}
+\end{description}
+
+También podemos distinguir entre dos \textbf{tipos} principales de ecuaciones diferenciales:
+\begin{description}
+  \item[Ordinarias:] La ecuación diferencial contiene derivadas de una o más variables dependientes 
+    \underline{con respecto a una sola variable independiente}.
+  \item[Parciales:] La ecuación diferencial contiene derivadas parciales de una o más variables dependientes
+    \underline{con respecto a dos o más variables independientes}.
+\end{description}
+
+Obsérvese la tabla \ref{tab:EjemploClasificacion} un ejemplo de clasificación de diferentes ecuaciones diferenciales de acuerdo a las definiciones 
+recién estudiadas.
+
+\begin{table}
+  \centering
+  \caption{Ejemplo de clasificación de ecuaciones diferenciales}
+  \label{tab:EjemploClasificacion}
+  \begin{tabular}{lccc}
+    Ecuación diferencial & Tipo & Orden & Lineal \\[0.5em]
+    $\dv{y}{x} = 2e^{-x}$ & Ordinaria & 1 & Sí \\[0.6em]
+    $\pdv{y}{t} = \pdv{x}{t} + ky - \pdv{y}{s}$ & Parcial & 1 & Sí* \\[0.6em]
+    $x^2y^{\prime \prime} + xy^{\prime} + y = 0$ & Ordinaria & 2 & Sí \\[0.6em]
+    $yy^{\prime \prime} + x^2y = x$ & Ordinaria & 2 & No* \\[0.6em]
+    $\pdv{y}{t} + \pdv[2]{y}{s} = c$ &Parcial & 2 & Sí* \\[0.6em]
+    $x^2 \pdv[2]{y}{x} + x \dv{y}{x} + (x^2 + 9)y = 0$ & Ordinaria & 2 & Sí \\[0.6em]
+    $\pdv[4]{v}{t} = kv(\pdv[2]{m}{n})^2$ & Parcial & 4 & No* \\[0.6em]
+    $(y^V)^3 - y^{\prime \prime \prime} + y^{\prime \prime} - y^2 = 0$ & Ordinaria & 5 & No \\[0.6em]
+    $y^{\prime} + y = \frac{x}{y}$ & Ordinaria & 1 & No \\[0.6em]
+    $\sin (y^{\prime}) + y = 0$ & Ordinaria & 1 & No*
+  \end{tabular}
+\end{table}
+
+Lo que realmente importa para la linealidad es cómo aparecen $y$ (la variable dependiente) y sus derivadas.
+No importa: 
+\begin{itemize}
+  \item Que deriven a $y$ respecto de \textbf{diferentes variables independientes}.
+  \item Que haya varias derivadas parciales de $y$ en la misma ecuación.
+\end{itemize}
+Lo que sí importa:
+\begin{enumerate}
+\item El grado: Todas las derivadas de $y$ y la propia $y$ deben aparecer en \textbf{primer grado} (sin estar elevadas a potencias diferentes de 1, ni estar multiplicadas entre sí).
+\item El tipo de funciones: $y$ y sus derivadas \textbf{no deben estar dentro de funciones no lineales} como $\sin$ , $\cos$ , e, $\ln$ , etc.
+\item Los coeficintes: Los coeficientes que acompañan a $y$ o a sus derivadas \textbf{sólo pueden depender de las variables independientes} (en este caso: $x$, $t$, $s$, etc.)
+Si el coeficiente depende de $y$ o de una derivada de $y$, entonces la ecuación ya no es lineal.
+
+Una vez aclaradas las propiedades de la linealidad con los ejemplos, podemos pasar al ejercicio de la tabla \ref{tab:EjercicioClasificacion}, que corresponde con la tarea 1.
+\end{enumerate}
+
+\begin{table}
+  \centering
+  \caption{Tarea1: Clasificación de ecuaciones diferenciales}
+  \label{tab:EjercicioClasificacion}
+  \begin{tabular}{lccc}
+    Ecuación diferencial & Tipo & Orden & Lineal \\[0.5em]
+    $y^{\prime \prime} + xyy^{\prime} = \sin (x)$ & Ordinaria & 2 & No \\[0.6em]
+    $3 \pdv[5]{x}{t} + \pdv[2]{y}{r} = 5$ & Parcial & 5 & Sí \\[0.6em]
+    $x^3yy^{\prime \prime \prime} - x^2yy^{\prime \prime} + y = 0$ & Ordinaria & 3 & No \\[0.6em]
+    $y^{\prime \prime} + 2x^3y^{\prime} - (x-1)y = x^{\frac{3}{2}}$ & Ordinaria & 2 & Sí \\[0.6em]
+    $(\pdv{u}{x})^2 + \pdv[2]{u}{y} = \frac{x}{y}$ &Parcial & 2 & No \\[0.6em]
+    $\dv[2]{y}{x} - 2 \dv{y}{x} + y = 0$ & Ordinaria & 2 & Sí \\[0.6em]
+    $(1+y)y^{\prime} + 2y = e^x$ & Ordinaria & 1 & No \\[0.6em]
+    $\pdv[2]{y}{x} = \pdv[2]{y}{t}$ & Parcial & 2 & Sí \\[0.6em]
+    $y^{\prime \prime} + 9y = \sin (y)$ & Ordinaria & 2 & No \\[0.6em]
+    $\dv{y}{x} = \sqrt{1 - (\pdv[2]{y}{x})^2}$ & Ordinaria & 2 & No
+  \end{tabular}
+\end{table}
+
+\end{document}
