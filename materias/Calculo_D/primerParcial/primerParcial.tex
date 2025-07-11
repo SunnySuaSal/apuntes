@@ -13,9 +13,28 @@
 \usepackage{caption} %Mayor control de las captions de figuras y tablas
 \usepackage{colortbl} %Para colores en tablas
 \usepackage{xcolor} %Opcional, pero útil para definir colores personalizados
+\usepackage{cancel} %Para cencelar elementos en ecuaciones
 \definecolor{paleYellow}{RGB}{255, 255, 180} %Ejemplo con amarillo pálido
 \usepackage{hyperref}
 \usepackage{enumitem}
+\usepackage{amsthm} %Para definir entornos personalizados
+\usepackage{cleveref} %Agrega el nombre del environment a la referencia
+
+%Definir entornos personalizados para tareas y ejercicios
+\theoremstyle{remark} %Para que el estilo de fuente siga normal
+\newtheorem{tarea}{Tarea}[section] %Numerado por seccion
+%Enumerador personalizado para los ejercicios dentro de las tareas
+\newlist{ejercicios}{enumerate}{1}
+\setlist[ejercicios,1]{label=\thetarea.\arabic*, ref=\thetarea.\arabic*, left=0pt}
+%Configuramos referencias
+\crefname{tarea}{Tarea}{Tareas}
+\crefname{ejerciciosi}{Ejercicio}{Ejercicios}
+
+%Environment para ejemplos
+\newtheorem{ejemplo}{Ejemplo}[section]
+
+%Definir comandos para abreviar
+\newcommand{\ed}{ecuación diferencial}
 
 %Preámbulo
 \title{Apuntes Cálculo D Primer parcial}
@@ -109,7 +128,7 @@ Si el coeficiente depende de $y$ o de una derivada de $y$, entonces la ecuación
 Una vez aclaradas las propiedades de la linealidad con los ejemplos, podemos pasar al ejercicio de la tabla \ref{tab:EjercicioClasificacion}, que corresponde con la tarea 1.
 \end{enumerate}
 
-\begin{table}
+\begin{table}[H]
   \centering
   \caption{Tarea1: Clasificación de ecuaciones diferenciales}
   \label{tab:EjercicioClasificacion}
@@ -138,5 +157,67 @@ Una \textbf{solución general} para una ecuación diferencial es la función que
 
 Una \textbf{solución particular} para una ecuación diferencial es la función que satisface a la ecuación y 
 cuyas constantes arbitrarias toman un \textbf{valor específico}.
+
+\begin{ejemplo}
+  La función $x + y^2 =c$ es la solución general de la ecuación diferencial \[\dv{y}{x} = - \frac{1}{2y}\]
+  Derivando implícitamente $x + y^2 = c$ obtenemos $1+2yy^{\prime} = 0$.
+  Despejando $y^{\prime}$ obtenemos \[y^{\prime} = \dv{y}{x} = - \frac{1}{2y}\]
+  Al sustituir en la ecuación diferencial obtenemos \[- \frac{1}{2y} = - \frac{1}{2y}\]
+  $\therefore$ Se obtiene una identidad.
+\end{ejemplo}
+
+\begin{ejemplo}
+  La función $y = e^{-x} + 8$ es la solución particular de la \ed $y^{\prime} + e^{-x} = 0$.
+  Derivando la solución y despejando $y^{\prime}$ se obtiene \[y^{\prime} = -e^{-x}\]
+  Sustituyendo en la \ed : \[-e^{-x} + e^{-x} = 0\]
+  $\therefore$ Se obtiene la identidad $0=0$.
+\end{ejemplo}
+
+\begin{ejemplo}
+  La función $y = 3x^2 + C_1x + C_2$ es la solución general de la \ed \\ $y^{\prime \prime} = 6$ porque 
+  \begin{align*}
+    y^{\prime} &= 3(2x) + C_1 (1) + 0 \\
+    y^{\prime} &= 6x + C_1 \\
+    y^{\prime \prime} &= 6(1) + 0 \\
+    y^{\prime \prime} &= 6
+  \end{align*}
+  Sustituyendo en la ecuación diferencial: $\therefore 6 = 6$
+\end{ejemplo}
+
+\begin{ejemplo}
+  La función $y = e^x (3 \cos (2x) + \sin (2x))$ es la solución particular \\
+  de la \ed $y^{\prime \prime} - 2y^{\prime} + 5y = 0$, 
+  porque\footnote{Las derivadas de $y$ pueden comprobarse como ejercicio para el lector.}
+  \begin{align*}
+    y^{\prime} &= e^x (5 \cos (2x) - 5 \sin (2x)) \\
+    y^{\prime \prime} &= e^x (-5 \cos (2x) - 15 \sin (2x))
+  \end{align*}
+  Sustituyendo en la \ed :
+  \[(e^x(-5 \cos (2x) -15 \sin (2x)) - 2(e^x(5 \cos (2x) -5 \sin (2x)) 
+  +5(e^x(3 \cos (2x) + \sin (2x))) = 0\]
+  Si $A = e^x \cos(2x)$ y $B = e^x \sin(2x)$ entonces
+  \begin{gather*}
+    -5A - 15B -10A + 10B +15A + 5B = 0\\
+    -15A + 15A -15B + 15 B = 0\\
+    \therefore 0 = 0
+  \end{gather*}
+\end{ejemplo}
+
+Procedamos entonces a realizar los ejercicios correspondientes a la tarea 2.
+
+\begin{tarea}
+  Demostrar si las siguientes funciones son soluciones de la correspondiente ecuación diferencial.
+  \begin{ejercicios}
+  \item $y = 2e^{-2x} + \frac{1}{3} e^x$ de $y^{prime} + 2y = e^x$
+    \[ y^{\prime} = -4e^{-2x} + \frac{1}{3} e^x \]
+    Sustituyendo en la \ed:
+    \begin{gather*}
+      -4e^{-2x} + \frac{1}{3} e^x + 2(2e^{-2x} + \frac{1}{3} e^x) = e^x\\
+      -4e^{2x} + \frac{1}{3} e^x + 4e^{-2x} + \frac{2}{3} e^x = e^x\\
+      \cancel{-4e^{-2x}} + e^x \cancel{+ 4e^{-2x}} = e^x\\
+      \therefore e^x = e^x
+    \end{gather*}
+  \end{ejercicios}
+\end{tarea}
 
 \end{document}
