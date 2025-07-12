@@ -13,8 +13,8 @@ jobs:
       - name: Clonar repositorio
         uses: actions/checkout@v3
 
-      - name: Configurar LaTeX
-        uses: dante-ev/latex-action@v2
+      - name: Compilar LaTeX
+        uses: xu-cheng/latex-action@v4
         with:
           root_file: materias/Calculo_D/primerParcial/primerParcial.tex
 
