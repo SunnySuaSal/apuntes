@@ -37,7 +37,7 @@
 }{}
 %Configuramos referencias
 \crefname{tarea}{Tarea}{Tareas}
-\crefname{ejerciciosi}{Ejercicio}{Ejercicios}
+\crefname{ejercicio}{Ejercicio}{Ejercicios}
 
 %Environment para ejemplos
 \newtheorem{ejemplo}{Ejemplo}[section]
@@ -133,7 +133,7 @@ Lo que sí importa:
 \begin{enumerate}
 \item El grado: Todas las derivadas de $y$ y la propia $y$ deben aparecer en \textbf{primer grado} (sin estar elevadas a potencias diferentes de 1, ni estar multiplicadas entre sí).
 \item El tipo de funciones: $y$ y sus derivadas \textbf{no deben estar dentro de funciones no lineales} como $\sin$ , $\cos$ , e, $\ln$ , etc.
-\item Los coeficintes: Los coeficientes que acompañan a $y$ o a sus derivadas \textbf{sólo pueden depender de las variables independientes} (en este caso: $x$, $t$, $s$, etc.)
+\item Los coeficientes: Los coeficientes que acompañan a $y$ o a sus derivadas \textbf{sólo pueden depender de las variables independientes} (en este caso: $x$, $t$, $s$, etc.)
 \item Si el coeficiente depende de $y$ o de una derivada de $y$, entonces la ecuación ya no es lineal.
 \end{enumerate}
 
@@ -231,6 +231,80 @@ Procedamos entonces a realizar los ejercicios correspondientes a la \cref{tarea:
       \therefore e^x = e^x
     \end{gather*}
   \end{ejercicio}
+  \begin{ejercicio}[4]
+    $y = C_1 e^{-x} + C_2 e^{2x}$ de $y^{\prime \prime} - y^{\prime} -2y = 0$
+    \begin{gather*}
+      y^{\prime} = -C_1 e^{-x} + 2C_2e^{2x}\\
+      y^{\prime \prime} = C_1e^{-x} + 4C_2e^{2x}
+    \end{gather*}
+    Sustituyendo en la \ed :
+    \[ C_1e^{-x} + 4C_2e^{2x} - (-C_1e^{-x} + 2C_2e^{2x}) - 2(C_1e^{-x} + C_2e^{2x}) = 0 \]
+    \[ C_1e^{-x} + 4C_2e^{2x} + C_1e^{-x} - 2C_2e^{2x} - 2C_1e^{-x} -2C_2e^{2x} = 0 \]
+    \[ \therefore 0 = 0 \]
+  \end{ejercicio}
+  \begin{ejercicio}[5]
+    $y = 8e^x + xe^x$ de $y^{\prime \prime} - 2y^{\prime} + y = 0$
+    \begin{gather*}
+      y^{\prime} = 9e^x + xe^x\\
+      y^{\prime \prime} = 10e^x + xe^x
+    \end{gather*}
+    Sustituyendo en la \ed :
+    \[ 10e^x + xe^x - 2(9e^x + xe^x) + 8e^x + xe^x = 0 \]
+    \[ 10e^x + xe^x - 18e^x - 2xe^x + 8e^x + xe^x = 0 \]
+    \[ \therefore 0 = 0 \]
+  \end{ejercicio}
+  \begin{ejercicio}[7]
+    $y = \frac{1}{\cos(x)}$ de $y^{\prime} - y \tan(x) = 0$
+    \begin{gather*}
+      y = \sec(x)\\
+      y^{\prime} = \tan(x) \cdot \sec(x)
+    \end{gather*}
+    Sustituyendo en la \ed :
+    \[ (\tan(x) \cdot \sec(x)) - (\tan(x) \cdot \sec(x)) = 0\]
+    \[ \therefore 0 = 0 \]
+  \end{ejercicio}
+  \begin{ejercicio}[9]
+    $y = 5 \tan(5x)$ de $y^{\prime} = 25 + y^2$
+    \[ y^{\prime} = 25 \sec^2(5x) \]
+    Sustituyendo en la \ed :
+    \begin{gather*}
+      25 \sec^2(5x) = 25 + (5 \tan(5x))^2\\
+      25 \sec^2(5x) = 25 + 25 \tan^2(5x)\\
+      25 \sec^2(5x) - 25 \tan^2(5x) = 25\\
+      25(\sec^2(5x) - \tan^2(5x)) = 25
+    \end{gather*}
+    Por la identidad trigonométrica de $\tan^2(ax) + 1 = \sec^2(ax)$
+    \[ \therefore 25 = 25 \]
+  \end{ejercicio}
+  \begin{ejercicio}[10]
+    $y = (\sqrt{x} + c)^2$ de $y^{\prime} = \sqrt{\frac{y}{x}}$
+    \[ y^{\prime} = \frac{\sqrt{x} + c}{\sqrt{x}} \]
+    Sustituyendo en la \ed :
+    \begin{gather*}
+      1 + \frac{c}{\sqrt{x}} = \sqrt{\frac{(\sqrt{x}+c)^2}{x}}\\
+      1 + \frac{c}{\sqrt{x}} = \frac{\sqrt{x} + c}{\sqrt{x}}\\
+      \therefore 1 + \frac{c}{\sqrt{x}} = 1 + \frac{c}{\sqrt{x}}
+    \end{gather*}
+  \end{ejercicio}
 \end{tarea}
+
+\section{Familia de soluciones n-paramétricas}
+Una solución que contiene una o varias constantes arbitrarias representa un conjunto de soluciones
+llamado "familia de soluciones n-paramétricas". Esto significa que una sola
+ecuación diferencial puede tener un número infinito de soluciones que
+corresponden a un número limitado de elecciones de los parámetros.
+\begin{ejemplo}
+  Sea $y = C_1e^x + C_2xe^x$ una familia de soluciones de la \ed 
+ 
+  $y^{\prime \prime} - 2y^{\prime} + y = 0$
+
+  Ejemplos de soluciones particulares:
+  \begin{itemize}
+    \item Si $C_1 = 0$ y $C_2 = 0$ entonces\footnote{$y_p$ es de solución particular}
+$y_p = 0$ (solución trivial)
+    \item Si $C_1 = 1$ y  $C_2 = 0$ entonces $y_p = e^x$
+    \item Si $C_1 = -2$ y $C_2 = -2/3$ entonces $y_p = -2e^x + \frac{2}{3} xe^x$
+  \end{itemize}
+\end{ejemplo}
 
 \end{document}
