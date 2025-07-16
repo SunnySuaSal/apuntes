@@ -18,12 +18,6 @@ jobs:
         with:
           root_file: materias/Calculo_D/primerParcial/primerParcial.tex
 
-      - name: Mostrar arbol de archivos generado
-      run: |
-        echo "Contenido del workspace: "
-        pwd
-        ls -lhR
-
       - name: Subur PDF compilado
         uses: actions/upload-artifact@v4
         with:
