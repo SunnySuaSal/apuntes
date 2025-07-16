@@ -306,5 +306,159 @@ $y_p = 0$ (solución trivial)
     \item Si $C_1 = -2$ y $C_2 = -2/3$ entonces $y_p = -2e^x + \frac{2}{3} xe^x$
   \end{itemize}
 \end{ejemplo}
+\begin{ejemplo}
+Si $x(t) = C_1 \cos(4t) + C_2 \sin(4t)$ es una familia de soluciones de la \ed :
+$x^{\prime \prime} + 16x = 0$. Determinar una solución particular que satisfaga las condiciones iniciales:
+$x(\frac{\pi}{2}) = -2$ y $x^{\prime}(\frac{\pi}{2}) = 1$.
 
+Aplicando condiciones iniciales:
+\begin{gather*}
+  x(\frac{\pi}{2}) = C_1 \cos(4(\frac{\pi}{2})) + C_2 \sin(4(\frac{\pi}{2}))\\
+  = C_1 \cos(2 \pi) + C_2 \sin(2 \pi)\\
+  = C_1(1) + C_2(0)\\
+  =C_1 + 0\\
+  C_1 = -2
+\end{gather*}
+\begin{gather*}
+  x^{\prime}(t) = -4 C_1 \sin(4t) + 4 C_2 \cos(4t)\\
+  x^{\prime}(\frac{\pi}{2}) = -4 C_1 \sin(4(\frac{\pi}{2})) + 4 C_2 \cos(4(\frac{\pi}{2}))\\
+= -4(-2) \cancel{\sin(2 \pi)} + 4 C_2 \cos(2 \pi)\\
+= 4 C_2 \cos(2 \pi)\\
+= 4 C_2 (1)\\
+1 = 4 C_2\\
+C_2 = \frac{1}{4}
+\end{gather*}
+Entonces una solución particular es con $C_1 = -2$ y $C_2 = \frac{1}{4}$
+\[ \therefore y_p = -2 \cos(4t) + \frac{1}{4} \sin(4t) \]
+\end{ejemplo}
+\begin{ejemplo}
+  De la familia de soluciones $y_g = C_1 e^x + C_2 e^{-x}$ obtenga las
+  soluciones particulares que satisfagan $y(-1) = 5$ y $y^{\prime}(-1) = -5$.
+  \begin{gather*}
+    y(-1) = C_1 e^{-1} + C_2 e^1 = 5\\
+    = \frac{C_1}{e} + C_2 e = 5
+  \end{gather*}
+  \begin{gather*}
+    y^{\prime} = C_1 e^x - C_2 e^{-x}\\
+    y^{\prime}(-1) = C_1 e^{-1} - C_2 e^1 = -5\\
+    \frac{C_1}{e} - C_2 e = -5
+  \end{gather*}
+  Resolvemos el sistema de ecuaciones
+\[
+\begin{array}{r@{\,}c@{\,}l}
+  \frac{C_1}{e} & + C_2 e & = 5 \\[0.5em]
+  \frac{C_1}{e} & - C_2 e & = -5 \\[0.5em]
+  \hline
+  \rule{0pt}{1.2em}2\frac{C_1}{e} &         & = 0
+\end{array}
+\]
+\[ \therefore C_1 = 0 \]
+Entonces $0 + C_2 e = 5$, $\therefore C_2 = \frac{5}{e}$.
+Finalmente
+\begin{gather*}
+  y_p = \frac{5}{e} e^{-x} = 5 e^{-1} e^{-x} = 5e^{-(x+1)}\\
+  y_p = 5e^{-(x+1)}
+\end{gather*}
+
+Ahora, para las \textbf{condiciones iniciales} $y(0) = 1$ y $y^{\prime}(0) = 2$
+\begin{gather*}
+  y(0) = C_1 e^0 + C_2 e^{-0} = 1\\
+  = C_1(1)+C_2(1) = 1\\
+  = C_1 + C_2 = 1
+\end{gather*}
+\begin{gather*}
+  y^{\prime} = C_1 e^x - C_2 e^{-x}\\
+  y^{\prime}(0) = C_1 e^0 - C_2e^{-0} = 2\\
+  = C_1(1) - C_2(1) = 2\\
+  C_1 - C_2 = 2
+\end{gather*}
+Resolvemos el sistema de ecuaciones
+\[
+  \begin{array}{rcl}
+    C_1 & + C_2 & = 1\\
+    C_1 & - C_2 & = 2\\
+    \hline
+    2C_1 & & = 3
+  \end{array}
+\]
+\[ \therefore C_1 = \frac{3}{2} \]
+\begin{gather*}
+  \frac{3}{2} - C_2 = 2\\
+  -C_2 = \frac{4}{2} - \frac{3}{2}\\
+  -C_2 = \frac{1}{2}\\
+  \therefore C_2 = - \frac{1}{2}
+\end{gather*}
+\[ y_p = \frac{3}{2}e^x - \frac{1}{2}e^{-x} \]
+\end{ejemplo}
+Procedamos entonces a realizar los ejercicios correspondientes a la \cref{tarea:familiaSoluciones}.
+\begin{tarea}\label{tarea:familiaSoluciones}
+De la familia de soluciones $x(t) = C_1 \cos(t) + C_2 \sin(t)$ obtenga las 
+soluciones particulares que satisfacen las condiciones iniciales.
+
+Si tenemos \[ x(t) = C_1 \cos(t) + C_2 \sin(t) \]
+Entonces \[ x^{\prime}(t) = -C_1 \sin(t) + C_2 \cos(t) \]
+\begin{ejercicio}
+  $x(0) = -1$ y $x^{\prime}(0) = 8$
+
+  Evaluamos $x(0)$
+  \begin{gather*}
+    x(0) = C_1 \cos(0) + C_2 \sin(0)\\
+    = C_1(1) + C_2(0)\\
+    C_1  = 1
+  \end{gather*}
+
+  Evaluamos $x^{\prime}(0)$
+  \begin{gather*}
+    x^{\prime}(0) = -C_1 \sin(0) + C_2 \cos(0)\\
+    = -C_1(0) + C_2(1)\\
+    C_2 = 8
+  \end{gather*}
+  Solución particular: $x(t) = - \cos(t) + 8 \sin(t)$
+
+\end{ejercicio}
+\begin{ejercicio}
+  $x(\frac{\pi}{4}) = \sqrt{2}$ y $x^{\prime}(\frac{\pi}{4}) = 2 \sqrt{2}$
+
+  Evaluamos $x(\frac{\pi}{4})$
+  \begin{gather*}
+    x(\frac{\pi}{4}) = C_1 \cos(\frac{\pi}{4}) + C_2 \sin(\frac{\pi}{4})\\
+    = C_1 (\frac{\sqrt{2}}{2}) + C_2 (\frac{\sqrt{2}}{2}) = \sqrt{2}\\
+    = \frac{\sqrt{2}}{2}(C_1 + C_2) = \sqrt{2}\\
+    \sqrt{2}(C_1 + C_2) = 2 \sqrt{2}\\
+    C_1 + C_2 = 2
+  \end{gather*}
+
+  Evaluamos $x^{\prime}(\frac{\pi}{4})$
+  \begin{gather*}
+    x^{\prime}(\frac{\pi}{4}) = -C_1 \sin(\frac{\pi}{4}) + C_2 \cos(\frac{\pi}{4}) = 2 \sqrt{2}\\
+    -C_1 (\frac{\sqrt{2}}{2}) + C_2 (\frac{\sqrt{2}}{2}) = 2 \sqrt{2}\\
+    \frac{\sqrt{2}}{2}(C_2 - C_1) = 2 \sqrt{2}\\
+    \sqrt{2}(C_2 - C_1) = 4 \sqrt{2}\\
+    C_2 - C_1 = 4
+  \end{gather*}
+
+  Resolvemos el sistema de ecuaciones
+  \[
+  \begin{array}{rcl}
+    C_1 & + C_2 & = 2\\
+    -C_1 & + C_2 & = 4\\
+    \hline
+         & 2C_2 & = 6
+  \end{array}
+  \]
+  \begin{gather*}
+    C_2 = 6/2\\
+    C_2 = 3
+  \end{gather*}
+  \begin{gather*}
+    C_1 + 3 = 2\\
+    C_1 = 2 - 3\\
+    C_1 = -1
+  \end{gather*}
+  Solución particular: $x(t) = - \cos(t) + 3 \sin(t)$
+\end{ejercicio}
+\end{tarea}
+
+\section{Primitivas}
+La primitiva es la ecuación diferencial de la cual se origina la solución general.
 \end{document}
