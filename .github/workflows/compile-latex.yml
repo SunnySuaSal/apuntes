@@ -1,40 +1,33 @@
-name: Compilar todos los .tex dinámicamente
+name: Compilar Apuntes LaTeX
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'materias/**/*.tex'
+      - 'materias/Calculo_D/primerParcial/primerParcial.tex'
 
 jobs:
-  compile:
+  build:
     runs-on: ubuntu-latest
 
     steps:
       - name: Clonar repositorio
         uses: actions/checkout@v4
 
-      - name: Instalar LaTeX
-        uses: teatimeguest/setup-texlive-action@v2
+      - name: Compilar LaTeX
+        uses: xu-cheng/latex-action@v4
         with:
-          packages: >-
-            latexmk
-            texlive-latex-recommended
-            texlive-latex-extra
-            texlive-fonts-recommended
-            texlive-xetex
-            texlive-lang-spanish
+          root_file: materias/Calculo_D/primerParcial/primerParcial.tex
 
-      - name: Compilar todos los .tex encontrados
+      - name: Mostrar árbol de archivos generado
         run: |
-          find materias -type f -name '*.tex' | while read file; do
-            echo "📄 Compilando $file"
-            latexmk -pdf -interaction=nonstopmode -halt-on-error "$file"
-          done
+          echo "Contenido del workspace:"
+          pwd
+          ls -lhR
 
-      - name: Subir PDFs
+      - name: Subir PDF compilado
         uses: actions/upload-artifact@v4
         with:
           name: Apuntes_PDF
-          path: '**/*.pdf'
+          path: '**/primerParcial.pdf'
