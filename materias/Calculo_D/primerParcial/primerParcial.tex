@@ -461,4 +461,172 @@ Entonces \[ x^{\prime}(t) = -C_1 \sin(t) + C_2 \cos(t) \]
 
 \section{Primitivas}
 La primitiva es la ecuación diferencial de la cual se origina la solución general.
+\begin{ejemplo}
+  Hallar la primitiva a partir de la solución general $y_g = x + cx^2$
+
+  Derivando la solución general se obtiene 
+  \begin{equation}
+    y^{\prime} = 1 + 2cx
+    \label{eq:ejemploPrimitivas}
+  \end{equation}
+  Despejamos $c$ de la solución general dada y la sustituimos en la derivada obtenida en \ref{eq:ejemploPrimitivas}
+  \[ c = \frac{y - x}{x^2} \]
+  Se obtiene la \ed de primer orden \[ y^{\prime} = 1 + 2 \left( \frac{y-x}{x} \right) \]
+\end{ejemplo}
+\textbf{Tip:} Se deberá derivar la solución general tantas veces como esta contenga constantes.
+\begin{ejemplo}
+  Hallar la primitiva a partir de la solución general $y = ax^2 + bx + c$
+
+  Dado que hay tres constantes en la solución general, se deriva tres veces, obteniendo
+  \begin{gather*}
+    y^{\prime} = 2ax + b\\
+    y^{\prime \prime} = 2a\\
+    y^{\prime \prime \prime} = 0
+  \end{gather*}
+  La primitiva es la \ed de tercer orden \[ y^{\prime \prime \prime} = 0\]
+\end{ejemplo}
+\begin{itemize}
+  \item Cada constante arbitraria necesita una derivada para eliminarse.
+  \item Te detienes cuando \textbf{todas las constantes desaparecen}.
+  \item El \textbf{orden} de la ecuación diferencial es quivalente al \textbf{numero de constantes} en la solución general.
+  \item La ecuación diferencial que resulta es \textbf{la más simple} que "genera" todas las soluciones posibles.
+\end{itemize}
+\begin{ejemplo}
+Hallar la primitiva a partir de la solución general $cx^2 + y^2 = 1$
+
+Derivando de forma implícita la solución general \[ 2cx + 2yy^{\prime} = 0 \]
+Despejamos $c$ de la solución general dada y la sustituimos en la derivada obtenida
+\begin{gather*}
+  cx^2 = 1 - y^2\\
+  c = \frac{1 - y^2}{x^2}
+\end{gather*}
+\begin{gather*}
+  \left( \frac{1 - y^2}{x^2} \right) x + yy^{\prime} = 0\\
+  yy^{\prime} = - \left( \frac{1 - y^2}{x^2} \right) x\\
+  y^{\prime} = - \frac{1}{y} \left( \frac{1 - y^2}{x} \right)
+\end{gather*}
+Por lo tanto, la primitiva es la \ed de primer orden \[ y^{\prime} = \frac{y^2 - 1}{xy} \]
+\end{ejemplo}
+\begin{ejemplo}
+  Hallar la primitiva a partir de la solución general $y = C_1x + C_2x^3$
+
+  Derivando dos veces la solución general se obtiene
+  \begin{gather*}
+    y^{\prime} = C_1 + 3C_2x^2\\
+    y^{\prime \prime} = 6C_2x
+  \end{gather*}
+  Resolvemos el sistema de ecuaciones para $C_1$ y $C_2$ a partir de las derivadas
+  \begin{gather*}
+    C_2 = \frac{y^{\prime \prime}}{6x}\\
+    y^{\prime} = C_1 + 3 \left( \frac{y^{\prime \prime}}{6x} \right) x^2\\
+    y^{\prime} = C_1 + \frac{1}{2} \left( \frac{y^{\prime \prime}}{x} \right) x^2\\
+    y^{\prime} = C_1 + 1/2 y^{\prime \prime} x\\
+    C_1 = y^{\prime} - \frac{x y^{\prime \prime}}{2}
+  \end{gather*}
+  Sustituyendo en la solución general
+  \begin{gather*}
+    y = \left( y^{\prime} - \frac{x y^{\prime \prime}}{2} \right) x + \left( \frac{y^{\prime \prime}}{6x} \right) x^3\\
+    y = xy^{\prime} - \frac{x^2y^{\prime \prime}}{2} + \frac{x^2y^{\prime \prime}}{6}
+  \end{gather*}
+  La primitiva es la \ed de segundo orden \[ x^2y^{\prime \prime} - 3xy^{\prime} + 3y = 0 \]
+\end{ejemplo}
+Procedamos entonces a realizar los ejercicios correspondientes a la \cref{tarea:Primitivas}
+\begin{tarea}
+  \label{tarea:Primitivas}
+  Obtener la ecuación diferencial a partir de la primitiva.
+
+  \begin{ejercicio}[1]
+    \label{ejercicio:primitivas:guess}
+  \[ y = C_1 e^{5x} + C_2 xe^{5x} \]
+  Puesto que hay dos constantes, derivamos dos veces:
+  \begin{gather*}
+    y^{\prime} = C_1 (5e^{5x}) + C_2 (5xe^{5x} + e^{5x})\\
+    y^{\prime \prime} = 25C_1e^{5x} + 25C_2xe^{5x} + 10C_2e^{5x}
+  \end{gather*}
+  Resolvemos el sistema de ecuaciones para $C_1$ y $C_2$ a partir de las derivadas.
+
+  Agrupas los términos con $e^{5x}$ y los términos con $xe^{5x}$
+  \begin{gather*}
+    y^{\prime} = e^{5x} (5C_1 + C_2) + 5C_2xe^{5x}\\
+    y^{\prime \prime} = e^{5x}(25C_1 + 10C_2) + 25C_2xe^{5x}
+  \end{gather*}
+  \textbf{Tip:} Agrupa los "bloques base". Como en este caso lo son los términos con $e^{5x}$ y los términos con $xe^{5x}$
+
+  Este formato es muy útil porque facilita que posteriormente los coeficientes de $e^{5x}$ y de $xe^{5x}$ se cancelen entre sí.
+
+  Observa cómo crecen los coeficientes de $e^{5x}$ y $xe^{5x}$
+  \begin{gather*}
+    y = C_1e^{5x} + C_2xe^{5x}\\
+    y^{\prime} = e^{5x} (5C_1 + C_2) + 5 C_2 xe^{5x}\\
+    y^{\prime \prime} = e^{5x} (25C_1 + 10C_2) + 25C_2xe^{5x}
+  \end{gather*}
+  Parecen múltiplos de 5 y 25, así que podemos intentar algo como \[ y^{\prime \prime} - ay^{\prime} + by = 0 \]
+  Lo más intuitivo es probar con $a = 10$ y $b = 25$ para intentar empatar los múltiplos, porque 
+  $y^{\prime \prime} \rightarrow 25C_1 + 10C_2$ contra $10y^{\prime} \rightarrow 10(5C_1 + C_2)$
+  \[ \therefore y^{\prime \prime} - 10y^{\prime} + 25y = 0 \]
+  \end{ejercicio}
+  \begin{ejercicio}[2]
+    \[ y = \frac{1}{3} e^{-3x} + C \]
+    Como hay una constante, derivamos una vez
+    \begin{gather*}
+      y^{\prime} = \frac{1}{3} (-3e^{-3x}) = -e^{-3x}\\
+      y^{\prime} = -e^{-3x}\\
+      \therefore y^{\prime} + e^{-3x} = 0
+    \end{gather*}
+    Si derivas la solución y te da algo explícito en $x$ (sin $y$'s), entonces lo más probable es que la \ed sea 
+    de la forma $y^{\prime} + f(x) = 0$
+  \end{ejercicio}
+  \begin{ejercicio}[4]
+    \[ y = C_1e^{-x} + C_2e^{2x} \]
+    Como hay dos constantes, derivamos dos veces
+    \begin{gather*}
+      y^{\prime} = -C_1e^{-x} + 2C_2e^{2x}\\
+      y^{\prime \prime} = C_1e^{-x} + 4C_2e^{2x}
+    \end{gather*}
+    A partir del método utilizado en el \cref{ejercicio:primitivas:guess}, deducimos que la \ed tendrá la forma 
+    $y^{\prime \prime} + ay^{\prime} + by = 0$
+
+    Podemos entonces introducir un método más general para la obtención de la ecuación diferencial a partir 
+    de la solución general.
+
+    Cuando una solución es de la forma \[ y = C_1e^{r_1x} + C_2e^{r_2x} \]
+    la ecuación diferencial asociada es \[ y - (r_1 + r_2)y^{\prime} + (r_1 \cdot r_2)y = 0 \]
+
+    En este caso, $r_1 = -1$ y $r_2 = 2$. Calculamos 
+    \begin{gather*}
+      r_1 + r_2 = -1 + 2 = 1\\
+      r_1 \cdot r_2 = (-1)(2) = -2
+    \end{gather*}
+    \begin{gather*}
+      y^{\prime \prime} -(1)y^{\prime} -2y = 0\\
+      \therefore y^{\prime \prime} - y^{\prime} - 2y = 0
+    \end{gather*}
+  \end{ejercicio}
+  \begin{ejercicio}[7]
+    \[ y = x + 5 \ln(x+1) + C \]
+    Como hay una constante, derivamos una vez
+    \begin{gather*}
+      y^{\prime} = 1 + \frac{5}{x+1}\\
+      = \frac{x+1}{x+1} + \frac{5}{x+1}\\
+      = \frac{x+1+5}{x+1}\\
+      = \frac{x+6}{x+1}
+    \end{gather*}
+    \[ \therefore y^{\prime} = \frac{x+6}{x+1} \]
+  \end{ejercicio}
+  \begin{ejercicio}[9]
+    \[ C = \frac{x^4}{4} + xy^{3} \]
+    Derivamos implícitamente \[ 0 = x^3 + 3xy^2y^{\prime} + y^3 \]
+    Despejamos $y^{\prime}$
+    \begin{gather*}
+      -x^3 - y^3 = 3xy^2y^{\prime}\\
+      y^{\prime} = \frac{-x^3-y^3}{3xy^2}\\
+      \therefore y^{\prime} = - \frac{x^3 + y^3}{3xy^2}
+    \end{gather*}
+  \end{ejercicio}
+\end{tarea}
+A partir de la Sección \ref{sec:variablesSeparables} estudiaremos métodos para \textbf{resolver} \ed .
+
+\section{Ecuaciones diferenciales de variables separables.}
+\label{sec:variablesSeparables}
+Una ecuación de variables separables tiene la forma 
 \end{document}
