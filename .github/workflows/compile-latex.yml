@@ -4,6 +4,8 @@ on:
   push:
     branches:
      - main
+    paths:
+      - 'materias/**/*.tex'
 
 jobs:
   build:
@@ -13,19 +15,32 @@ jobs:
       - name: Clonar repositorio
         uses: actions/checkout@v4
 
-      - name: Compilar LaTeX
+      - name: Encontrar todos los archivos .tex en el directorio materias
+        id: list-tex
+        run: |
+          TEX_FILES=$(find materias -type f -name '*.tex')
+          echo "Archivos encontrados:"
+          echo "$TEX_FILES"
+          echo "tex_files<<EOF" >> $GITHUB_OUTPUT
+          echo "$TEX_FILES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Compilar cada archivo .tex encontrado
         uses: xu-cheng/latex-action@v4
         with:
-          root_file: materias/Calculo_D/primerParcial/primerParcial.tex
+          root_file: ${{ matrix.tex }}
+        strategy:
+          matrix:
+            tex: ${{ fromJson(steps.list-tex.outputs.tex_files).split('\n') }}
 
-      - name: Mostrar árbol de archivos generado
+      - name: Mostrar arbol de archivos generado
         run: |
           echo "Contenido del workspace:"
           pwd
           ls -lhR
 
-      - name: Subir PDF compilado
+      - name: Subir PDFs compilados
         uses: actions/upload-artifact@v4
         with:
           name: Apuntes_PDF
-          path: '**/primerParcial.pdf'
+          path: '**/*.pdf'
