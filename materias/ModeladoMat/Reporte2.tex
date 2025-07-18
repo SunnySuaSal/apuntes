@@ -75,7 +75,7 @@ Una forma de visualizar este tipo de problemas es mediante grafos, por ejemplo, 
 \centering
 \caption{Problema representado como un grafo.}
 \label{fig:grafoProb1}
-\includegraphics[width=0.8\textwidth]{Prob1GrafImg.png}
+\includegraphics[width=0.8\textwidth]{assets/Prob1GrafImg.png}
 \end{figure}
 
 \subsection{Solución con LINGO}
@@ -144,7 +144,7 @@ Lo primero que podemos observar del reporte de la figura \ref{fig:reporteProb1} 
 \centering
 \caption{Grafo resuelto para el problema 1.}
 \label{fig:grafoResProb1}
-\includegraphics[width=0.8\textwidth]{grafoProb1Res.png}
+\includegraphics[width=0.8\textwidth]{assets/grafoProb1Res.png}
 \end{figure}
 
 En este caso, nos dió desde la primera ejecución una solución con números enteros, sin embargo, en futuros problemas sí que será necesario especificarlo, utilizando la función de LINGO \textbf{@GIN}
@@ -173,7 +173,7 @@ Demanda $\rightarrow$ & 5000 & 2600 & 3300 & 10900/10900
     \centering
     \caption{Grafo para el Problema 2}
     \label{fig:grafProb2}
-    \includegraphics[width=0.8\textwidth]{grafoProb2.png}
+    \includegraphics[width=0.8\textwidth]{assets/grafoProb2.png}
 \end{figure}
 
 \subsection{Solución con LINGO}
@@ -1079,7 +1079,7 @@ Resolvamos entonces el siguiente problema, expresando en un grafo en la Figura \
     \centering
     \caption{Grafo para el Problema 6}
     \label{fig:grafProb6}
-    \includegraphics[width=0.8\textwidth]{grafoProb6.png}
+    \includegraphics[width=0.8\textwidth]{assets/grafoProb6.png}
 \end{figure}
 
 \begin{table}[H]
@@ -1170,7 +1170,7 @@ Esta solución puede expresarse en la figura \ref{fig:resProb6} sobre el grafo i
     \centering
     \caption{Grafo solución para el Problema 6}
     \label{fig:resProb6}
-    \includegraphics[width=0.8\textwidth]{GrafoSolProb6.png}
+    \includegraphics[width=0.8\textwidth]{assets/GrafoSolProb6.png}
 \end{figure}
 
 \subsection{Solver}
@@ -1180,14 +1180,14 @@ Para resolver problemas de transbordo en solver, basémonos en el grafo de la fi
 \centering
 \caption{Grafo para el Problema 7}
 \label{fig:grafoProb7}
-\includegraphics[width=0.8\textwidth]{grafoProb7.png}
+\includegraphics[width=0.8\textwidth]{assets/grafoProb7.png}
 \end{figure}
 
 \begin{figure}[H]
 \centering
 \caption{Tablas para el Problema 7}
 \label{fig:tablasolverProb7}
-\includegraphics[width=0.8\textwidth]{tablasolverProb7.png}
+\includegraphics[width=0.8\textwidth]{assets/tablasolverProb7.png}
 \end{figure}
 
 Definimos una celda para el resultado, en el que realizamos la SUMPRODUCT de los costos y restricciones y las configuramos en el solver para \underline{minimizar} la función objetivo, como se muestra en la Figura \ref{fig:configSolverProb7}, en la cual obtenemos un costo total de \$20,700.
@@ -1196,7 +1196,7 @@ Definimos una celda para el resultado, en el que realizamos la SUMPRODUCT de los
 \centering
 \caption{Configuración Solver Problema 7}
 \label{fig:configSolverProb7}
-\includegraphics[width=0.6\textwidth]{configSolverProb7.png}
+\includegraphics[width=0.6\textwidth]{assets/configSolverProb7.png}
 \end{figure}
 
 \section{Asignación}
@@ -1631,7 +1631,7 @@ e&1&0&0&1&0
 \centering
 \caption{Problema representado como un grafo.}
 \label{fig:grafEjem}
-\includegraphics[width=0.7\textwidth]{grafoEjemploAdj.png}
+\includegraphics[width=0.7\textwidth]{assets/grafoEjemploAdj.png}
 \end{figure}
 
 \subsection{Matriz de pesos}
@@ -1642,7 +1642,7 @@ Es importante recordar que la matriz se lee en orden $ij$, es decir, el nodo $i$
 \centering
 \caption{Ejemplo de grafo pesado dirigido.}
 \label{fig:grafEjem}
-\includegraphics[width=0.7\textwidth]{grafEjem2.png}
+\includegraphics[width=0.7\textwidth]{assets/grafEjem2.png}
 \end{figure}
 
 \begin{table}
@@ -1674,7 +1674,7 @@ En contextos de optimización, podemos utilizarlo para calcular y minimizar dist
 \centering
 \caption{Grafo problema 10.}
 \label{fig:grafoProb10}
-\includegraphics[width=0.7\textwidth]{grafoProb10.png}
+\includegraphics[width=0.7\textwidth]{assets/grafoProb10.png}
 \end{figure}
 
 \subsection{Pasos para Dijsktra}
@@ -1695,42 +1695,42 @@ Para efectos de claridad, en los pasos descritos de las Figuras \ref{fig:paso1Pr
 \centering
 \caption{Paso 1 Problema 10}
 \label{fig:paso1Prob10}
-\includegraphics[width=0.7\textwidth]{paso1Prob10.png}
+\includegraphics[width=0.7\textwidth]{assets/paso1Prob10.png}
 \end{figure}
 
 \begin{figure}[H]
 \centering
 \caption{Paso 2 Problema 10}
 \label{fig:paso2Prob10}
-\includegraphics[width=0.7\textwidth]{paso2Prob10.png}
+\includegraphics[width=0.7\textwidth]{assets/paso2Prob10.png}
 \end{figure}
 
 \begin{figure}[H]
 \centering
 \caption{Paso 3 Problema 10}
 \label{fig:paso3Prob10}
-\includegraphics[width=0.7\textwidth]{paso3Prob10.png}
+\includegraphics[width=0.7\textwidth]{assets/paso3Prob10.png}
 \end{figure}
 
 \begin{figure}[H]
 \centering
 \caption{Paso 4 Problema 10}
 \label{fig:paso4Prob10}
-\includegraphics[width=0.7\textwidth]{paso4Prob10.png}
+\includegraphics[width=0.7\textwidth]{assets/paso4Prob10.png}
 \end{figure}
 
 \begin{figure}[H]
 \centering
 \caption{Paso 5 Problema 10}
 \label{fig:paso5Prob10}
-\includegraphics[width=0.7\textwidth]{paso5Prob10.png}
+\includegraphics[width=0.7\textwidth]{assets/paso5Prob10.png}
 \end{figure}
 
 \begin{figure}[H]
 \centering
 \caption{Paso 6 Problema 10}
 \label{fig:paso6Prob10}
-\includegraphics[width=0.7\textwidth]{paso6Prob10.png}
+\includegraphics[width=0.7\textwidth]{assets/paso6Prob10.png}
 \end{figure}
 
 Una vez terminado el algoritmo, tendremos en las etiquetas el camino o ruta mínima desde el nodo origen a cualquier otro nodo del grafo. Si en este caso, denotamos el nodo destino como aquel con la flecha saliente (en este caso el nodo 6), entonces en su etiqueta ya tenemos el costo \mbox{total = 9} y es cuestión de recostruir el camino o ruta desde el nodo origen, como se muestra en la Figura \ref{fig:resProb10}
@@ -1739,7 +1739,7 @@ Una vez terminado el algoritmo, tendremos en las etiquetas el camino o ruta mín
 \centering
 \caption{Solución Problema 10}
 \label{fig:resProb10}
-\includegraphics[width=0.7\textwidth]{solProb10.png}
+\includegraphics[width=0.7\textwidth]{assets/solProb10.png}
 \end{figure}
 
 \section{Árbol de expansión mínima: Kruskal}
@@ -1760,56 +1760,56 @@ Ejecutemos el algoritmo de Kruskal en el grafo de la Figura \ref{fig:grafoProb11
 \centering
 \caption{Grafo para el Problema 11}
 \label{fig:GrafoProb11}
-\includegraphics[width=0.6\textwidth]{GrafoProb11.png}
+\includegraphics[width=0.6\textwidth]{assets/GrafoProb11.png}
 \end{figure}
 
 \begin{figure}[H]
 \centering
 \caption{Paso 1 Problema 11}
 \label{fig:paso1Prob11}
-\includegraphics[width=0.6\textwidth]{paso1Prob11.png}
+\includegraphics[width=0.6\textwidth]{assets/paso1Prob11.png}
 \end{figure}
 
 \begin{figure}[H]
 \centering
 \caption{Paso 2 Problema 11}
 \label{fig:paso2Prob11}
-\includegraphics[width=0.6\textwidth]{paso2Prob11.png}
+\includegraphics[width=0.6\textwidth]{assets/paso2Prob11.png}
 \end{figure}
 
 \begin{figure}[H]
 \centering
 \caption{Paso 3 Problema 11}
 \label{fig:paso3Prob11}
-\includegraphics[width=0.6\textwidth]{paso3Prob11.png}
+\includegraphics[width=0.6\textwidth]{assets/paso3Prob11.png}
 \end{figure}
 
 \begin{figure}[H]
 \centering
 \caption{Paso 4 Problema 11}
 \label{fig:paso4Prob11}
-\includegraphics[width=0.6\textwidth]{paso4Prob11.png}
+\includegraphics[width=0.6\textwidth]{assets/paso4Prob11.png}
 \end{figure}
 
 \begin{figure}[H]
 \centering
 \caption{Paso 5 Problema 11}
 \label{fig:paso5Prob11}
-\includegraphics[width=0.6\textwidth]{paso5Prob11.png}
+\includegraphics[width=0.6\textwidth]{assets/paso5Prob11.png}
 \end{figure}
 
 \begin{figure}[H]
 \centering
 \caption{Paso 6 Problema 11}
 \label{fig:paso6Prob11}
-\includegraphics[width=0.6\textwidth]{paso6Prob11.png}
+\includegraphics[width=0.6\textwidth]{assets/paso6Prob11.png}
 \end{figure}
 
 \begin{figure}[H]
 \centering
 \caption{Árbol de expansión mínima para el Problema 11}
 \label{fig:solProb11}
-\includegraphics[width=0.6\textwidth]{solProb11.png}
+\includegraphics[width=0.6\textwidth]{assets/solProb11.png}
 \end{figure}
 
 Podemos hacer un recuento del orden en que las aristas del árbol de expansión mínima de este problema fueron seleccionadas: \{AD, CE, DF, AB, BE, EG\}.
