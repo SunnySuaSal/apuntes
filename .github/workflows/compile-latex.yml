@@ -1,4 +1,4 @@
-name: Compilar apuntes LaTeX
+name: Compilar todos los .tex dinámicamente
 
 on:
   push:
@@ -8,26 +8,32 @@ on:
       - 'materias/**/*.tex'
 
 jobs:
-  build:
+  compile:
     runs-on: ubuntu-latest
 
     steps:
       - name: Clonar repositorio
         uses: actions/checkout@v4
 
-      - name: Compilar todos los archivos .tex en materias/
-        uses: xu-cheng/latex-action@v4
+      - name: Instalar LaTeX
+        uses: teatimeguest/setup-texlive-action@v2
         with:
-          root_file: |
-            $(find materias -type f -name '*.tex')
+          packages: >-
+            latexmk
+            texlive-latex-recommended
+            texlive-latex-extra
+            texlive-fonts-recommended
+            texlive-xetex
+            texlive-lang-spanish
 
-      - name: Mostrar árbol de archivos generado
+      - name: Compilar todos los .tex encontrados
         run: |
-          echo "Contenido del workspace:"
-          pwd
-          ls -lhR
+          find materias -type f -name '*.tex' | while read file; do
+            echo "📄 Compilando $file"
+            latexmk -pdf -interaction=nonstopmode -halt-on-error "$file"
+          done
 
-      - name: Subir PDFs compilados
+      - name: Subir PDFs
         uses: actions/upload-artifact@v4
         with:
           name: Apuntes_PDF
