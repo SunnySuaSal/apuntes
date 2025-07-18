@@ -1,4 +1,4 @@
-name: Compilar LaTeX
+name: Compilar apuntes LaTeX
 
 on:
   push:
@@ -8,19 +8,18 @@ on:
       - 'materias/**/*.tex'
 
 jobs:
-  compile-all:
+  build:
     runs-on: ubuntu-latest
 
     steps:
       - name: Clonar repositorio
         uses: actions/checkout@v4
 
-      - name: Compilar todos los .tex en materias/
-        run: |
-          find materias -type f -name '*.tex' | while read file; do
-            echo "Compilando $file"
-            latexmk -pdf -interaction=nonstopmode -halt-on-error "$file"
-          done
+      - name: Compilar todos los archivos .tex en materias/
+        uses: xu-cheng/latex-action@v4
+        with:
+          root_file: |
+            $(find materias -type f -name '*.tex')
 
       - name: Mostrar árbol de archivos generado
         run: |
