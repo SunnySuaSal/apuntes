@@ -1,11 +1,11 @@
-name: Compilar Apuntes LaTeX
+name: Compilar todos los Apuntes LaTeX
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'materias/Calculo_D/primerParcial/primerParcial.tex'
+      - 'materias/**/*.tex'  # Trigger on any .tex file change under materias
 
 jobs:
   build:
@@ -15,10 +15,13 @@ jobs:
       - name: Clonar repositorio
         uses: actions/checkout@v4
 
-      - name: Compilar LaTeX
-        uses: xu-cheng/latex-action@v4
-        with:
-          root_file: materias/Calculo_D/primerParcial/primerParcial.tex
+      - name: Buscar y compilar todos los .tex de materias
+        run: |
+          find materias -type f -name "*.tex" > texfiles.txt
+          while read file; do
+            echo "Compilando $file..."
+            latexmk -pdf -interaction=nonstopmode "$file"
+          done < texfiles.txt
 
       - name: Mostrar árbol de archivos generado
         run: |
@@ -26,8 +29,8 @@ jobs:
           pwd
           ls -lhR
 
-      - name: Subir PDF compilado
+      - name: Subir todos los PDFs compilados
         uses: actions/upload-artifact@v4
         with:
           name: Apuntes_PDF
-          path: '**/primerParcial.pdf'
+          path: materias/**/*.pdf  # Upload all PDFs under materias
