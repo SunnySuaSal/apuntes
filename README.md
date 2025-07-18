@@ -10,3 +10,7 @@ Si quieres acceder a los pdfs, tengo un script de GitHub Actions que compila
 las versiones más recientes de los pdfs.
 Vé a la sección **Actions** de este repo y los encontrarás en *Artifacts* del más reciente.
 ¡Suerte! Y recuerda que el conocimiento es de todos.
+
+Justo ahora, sólo se encuentra disponible el pdf de primerParcial de Calculo_D
+Si quisieras compilar algún otro, tendrás que clonar el repo y compilarlo en tu máquina.
+Ese proceso tampoco es nada complicado, si quisieras mejorarlo, está el issue, por si quieres revisarlo.
