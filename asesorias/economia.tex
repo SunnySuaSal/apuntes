@@ -1,7 +1,7 @@
 \documentclass[12pt]{article}
 
 \usepackage[utf8]{inputenc} %Codificación de caracteres (UTF-8)
-\usepackage{amsmath, amssymb, amsfonts} %Paquetes para expresiones matemáticas
+\usepackage{amsmath, amssymb, amsfonts, cancel} %Paquetes para expresiones matemáticas
 \usepackage{graphicx} %Para insertar imágenes
 \usepackage[spanish]{babel} %Optimiza el typesetting para documentos en español
 \usepackage[letterpaper, left=1in, right=1in, top=1in, bottom=1in]{geometry}
@@ -101,12 +101,29 @@ El procedimiento es sencillo:
     \]
 \end{enumerate}
 
-Verificación (por sustitución directa)
+\paragraph{Verificación (por sustitución directa)}
 
-\[ \frac{\frac{3-2x}{2x-1}+3}{2(\frac{3-2x}{2x-1})+2}=\frac{\frac{3-2x}{2x-1}+\frac{3(2x-1)}{2x-1}}{\frac{6-4x}{2x-1}+\frac{2(2x-1)}{2x-1}} \]
-\[ \frac{\frac{3-2x+6x-3}{2x-1}}{\frac{6-4x+4x-2}{2x-1}}=\frac{\frac{4x}{2x-1}}{\frac{4}{2x-1}} \]
-Por regla del sándwich, simplificamos:
-\[ \frac{4x(2x-1)}{4(2x-1)} = x \]
+\begin{align*}
+\frac{\dfrac{3-2x}{2x-1}+3}{2\left(\dfrac{3-2x}{2x-1}\right)+2}
+&=
+\frac{\dfrac{3-2x}{2x-1}+\dfrac{3(2x-1)}{2x-1}}
+     {\dfrac{6-4x}{2x-1}+\dfrac{2(2x-1)}{2x-1}}
+\\[1em]
+&=
+\frac{\dfrac{3-2x+6x-3}{2x-1}}
+     {\dfrac{6-4x+4x-2}{2x-1}}
+\\[1em]
+&=
+\frac{\dfrac{4x}{2x-1}}
+     {\dfrac{4}{2x-1}}
+\end{align*}
+
+\medskip
+Por la \emph{regla del sándwich}, simplificamos:
+
+\[
+\frac{\cancel{4}x\cancel{(2x-1)}}{\cancel{4}\cancel{(2x-1)}} = x
+\]
 
 \subsection{Dominio de la composición}
 La función $f(x)$ no está definida cuando el denominador $2x-1=0$, por despeje $x \neq \frac{1}{2}$.
