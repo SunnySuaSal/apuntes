@@ -1,0 +1,87 @@
+\documentclass[12pt]{article}
+
+\usepackage[utf8]{inputenc} %Codificación de caracteres (UTF-8)
+\usepackage{amsmath, amssymb, amsfonts, cancel} %Paquetes para expresiones matemáticas
+\usepackage{graphicx} %Para insertar imágenes
+\usepackage[spanish]{babel} %Optimiza el typesetting para documentos en español
+\usepackage[letterpaper, left=1in, right=1in, top=1in, bottom=1in]{geometry}
+%Para abarcar más hoja horizontalmente
+\usepackage{booktabs} %Optimiza trabajar con tablas y agrega algunos comandos
+\usepackage{multirow} %Para crear celdas tabulares que abarcan múltiples filas
+\usepackage{float} %Mayor control sobre dónde se colocan las figuras y tablas
+\usepackage{caption} %Mayor control de las captions de figuras y tablas
+\usepackage{colortbl} %Para colores en tablas
+\usepackage{xcolor} %Opcional, pero útil para definir colores personalizados
+\definecolor{paleYellow}{RGB}{255, 255, 180} %Ejemplo con amarillo pálido
+\usepackage{physics} %Notación elegante de derivadas (opcional)
+\usepackage{hyperref}
+
+\title{Asesorías Cálculo A}
+\author{Jorge Alberto Suárez Saldaña}
+\date{\today}
+
+\begin{document}
+\maketitle
+En las presentes notas de las asesorías, recorreremos los temas listados en el temario del curso. Tomando un enfoque más práctico con una ligera explicación teórica, 
+la resolución de al menos un ejercicio y la asignación de varios ejercicios de práctica.
+\section{Definición intuitiva de límite}
+El límite de una función en un punto describe a qué valor se acerca la función cuando x se aproxima a ese punto, aunque la función no esté definida allí.
+Significa acercarce mucho a un valor sin llegar a este.
+\subsection{Ejemplo}
+La función $f(x)=\frac{x^2-1}{x-1}$ no se puede evaluar en $x=1$, pues se indefine (da $0/0$), pero si evaluamos en valores cercanos:
+\begin{table}[H]
+\centering
+\begin{tabular}{cc}
+$x$&$f(x)$\\
+0.9&1.9\\
+0.99&1.99\\
+1.01&2.01\\
+1.1&2.1
+\end{tabular}
+\end{table}
+Observamos que la función se acerca a 2, por lo tanto \[ \lim_{x \to 1} f(x) = 2 \]
+La definición intuitiva formal es la siguiente: \[ \lim_{x \to a} f(x)=L \]
+Que se lee como: El límite de $f(x)$ cuando x tiende a $a$ es $L$.
+\subsection{Ejercicios (tabulación)}
+\begin{enumerate}
+  \item \[ \lim_{x \to 2} (x^2+1) \]
+  \item \[ \lim_{x \to 0} \frac{\sin(x)}{x} \]
+  \item \[ \lim_{x \to 1} \frac{|x-1|}{x-1} \]
+\end{enumerate}
+\section{Análisis gráfico de límites}
+Podemos examinar los límites de una función si contamos con la gráfica de dicha función, 
+especialmente si utilizamos un graficador digital como \textit{Desmos} o \textit{GeoGebra}.
+El procedimiento es el siguiente:
+\begin{enumerate}
+  \item Observa la gráfica.
+  \item Observa qué valor toma $f(x)$ cuando te acercas por izquierda y popr derecha.
+  \item Si \underline{ambos} coinciden, el límite existe.
+\end{enumerate}
+Casos importantes en gráficas:
+\begin{enumerate}
+  \item \textbf{Hueco:} La gráfica se acerca a un punto, pero no está definida allí. Entonces sí hay límite. Ejemplo en la Figura \ref{fig:limitePunto}.
+  \item \textbf{Salto:} Valores distintos por izquierda y derecha. Entonces el límite no existe. Ejemplo en la Figura \ref{fig:limiteSalto}.
+  \item \textbf{Asíntota vertical:} La gráfica se dispara. Entonces el límite es infinito. Ejemplo en la Figura \ref{fig:limiteAsintota}.
+\end{enumerate}
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.6\textwidth]{assets/limitePunto.jpeg}
+  \end{center}
+  \caption{Ejemplo de límite hueco.}\label{fig:limitePunto}
+\end{figure}
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.6\textwidth]{assets/limiteSalto.jpeg}
+  \end{center}
+  \caption{Ejemplo de límite con salto.}\label{fig:limiteSalto}
+\end{figure}
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.6\textwidth]{assets/limiteAsintota.jpeg}
+  \end{center}
+  \caption{Ejemplo de límite con asíntota.}\label{fig:limiteAsintota}
+\end{figure}
+
+
+
+\end{document}
