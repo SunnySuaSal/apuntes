@@ -136,4 +136,38 @@ Entonces, el dominio de la composición de función y función inversa es \[ \ma
   \item \[f(x)=\frac{2x-5}{3}\]
 \end{enumerate}
 
+\section{Continuidad de una función}
+La tercera pregunta del examen plantea: \textit{Para la función $f(x)=\frac{2x^2-x-1}{x^2-3x+2}$ determina los puntos donde $f(x)$ es discontinua y determina
+el tipo de discontinuidad en cada punto.}
+Este problema nos pregunta por la continuidad (o en su defecto, discontinuidad) de una función. 
+Para encontrar sichos puntos de discontinuidad, el procedimiento es el siguiente:
+
+\begin{enumerate}
+  \item Factorizar
+    \[ 2x^2-x-1 = (2x+1)(x-1) \]
+    \[ x^2-3x+2 = (x-1)(x-2) \]
+  \item Encontrar puntos problemáticos. Aquellos en los que el denomidador $=0$
+    En este caso, es en los valores $x=1$ y $x=2$
+  \item Simplificar
+    \[ 
+      f(x) = \frac{(2x+1)(\cancel{x-1})}{(\cancel{x-1})(x-2)}
+    \]
+    \[
+      \frac{2x-1}{x-2}, x \neq 1,2
+    \]
+  \item Clasificación de los tipos de discontinuidad
+
+    En $x=1$ el factor se cancela, la función no está definida pero existe el límite.
+    A esto se le conoce como \textbf{discontinuidad removible} o hueco.
+
+    En $x=2$ el factor no se cancela, por lo que se comporta como una \textbf{asíntota vertical}, también conocida como \textbf{discontinuidad infinita}.
+\end{enumerate}
+
+\subsection{Ejercicios}
+\begin{enumerate}
+  \item \[ \frac{x^2-4}{x-2} \]
+  \item \[ \frac{x^2+1}{x^2-1} \]
+  \item \[ \frac{x^2-9}{x^2-3x} \]
+\end{enumerate}
+
 \end{document}
