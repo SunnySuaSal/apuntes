@@ -82,6 +82,714 @@ Casos importantes en gráficas:
   \caption{Ejemplo de límite con asíntota.}\label{fig:limiteAsintota}
 \end{figure}
 
+\section{La derivada y el problema de la recta tangente}
 
+La derivada de una función surge del problema de encontrar la pendiente de la recta tangente a una curva en un punto dado.
+Recordemos que la pendiente de una recta secante que pasa por los puntos $(a,f(a))$ y $(a+h,f(a+h))$ está dada por:
+\[
+m_{\text{secante}}=\frac{f(a+h)-f(a)}{h}
+\]
+Cuando hacemos que $h$ tienda a cero, la recta secante se convierte en la recta tangente.
+
+\subsection{Definición de la derivada}
+La derivada de una función $f$ en el punto $a$ se define como:
+\[
+f'(a)=\lim_{h\to 0}\frac{f(a+h)-f(a)}{h}
+\]
+Esta expresión representa:
+\begin{itemize}
+  \item La pendiente de la recta tangente a la gráfica de $f$ en $x=a$.
+  \item La razón de cambio instantánea de la función.
+\end{itemize}
+
+\subsection{Ejemplo}
+Sea $f(x)=x^2$. Calculamos su derivada usando la definición:
+\[
+f'(a)=\lim_{h\to0}\frac{(a+h)^2-a^2}{h}
+\]
+\[
+=\lim_{h\to0}\frac{a^2+2ah+h^2-a^2}{h}
+=\lim_{h\to0}(2a+h)=2a
+\]
+Por lo tanto:
+\[
+f'(x)=2x
+\]
+
+\subsection{Recta tangente}
+La ecuación de la recta tangente a $f(x)$ en el punto $x=a$ es:
+\[
+y-f(a)=f'(a)(x-a)
+\]
+
+\subsection{Ejercicios}
+\begin{enumerate}
+  \item Calcula $f'(a)$ para $f(x)=x^3$ usando la definición.
+  \item Encuentra la ecuación de la recta tangente a $f(x)=x^2$ en $x=2$.
+  \item Calcula la pendiente de la recta tangente a $f(x)=\sqrt{x}$ en $x=4$.
+\end{enumerate}
+
+%--------------------------------------------------
+
+\section{Forma alternativa de la derivada}
+
+Una forma equivalente de definir la derivada es:
+\[
+f'(a)=\lim_{x\to a}\frac{f(x)-f(a)}{x-a}
+\]
+Esta expresión es especialmente útil para el cálculo práctico de derivadas en un punto.
+
+\subsection{Ejemplo}
+Sea $f(x)=x^2$ y $a=3$:
+\[
+f'(3)=\lim_{x\to3}\frac{x^2-9}{x-3}
+\]
+Factorizando:
+\[
+=\lim_{x\to3}\frac{(x-3)(x+3)}{x-3}=6
+\]
+
+\subsection{Ejercicios}
+\begin{enumerate}
+  \item Calcula $f'(1)$ para $f(x)=x^2$ usando esta forma.
+  \item Calcula $f'(2)$ para $f(x)=\frac{1}{x}$.
+  \item Analiza si existe la derivada de $f(x)=|x|$ en $x=0$.
+\end{enumerate}
+
+%--------------------------------------------------
+
+\section{Velocidad, aceleración y razones de cambio}
+
+La derivada permite interpretar fenómenos físicos y reales como razones de cambio.
+
+\subsection{Velocidad}
+Si $s(t)$ representa la posición de un objeto en función del tiempo, la velocidad instantánea está dada por:
+\[
+v(t)=s'(t)
+\]
+
+\subsection{Ejemplo}
+Sea $s(t)=t^2$. Entonces:
+\[
+v(t)=2t
+\]
+En $t=3$, la velocidad es:
+\[
+v(3)=6
+\]
+
+\subsection{Aceleración}
+La aceleración es la derivada de la velocidad, o equivalentemente, la segunda derivada de la posición:
+\[
+a(t)=v'(t)=s''(t)
+\]
+En el ejemplo anterior:
+\[
+a(t)=2
+\]
+
+\subsection{Otras razones de cambio}
+La derivada también se usa para modelar:
+\begin{itemize}
+  \item Crecimiento poblacional
+  \item Cambio de temperatura
+  \item Costo e ingreso marginal
+  \item Cambio de volumen o área
+\end{itemize}
+
+\subsection{Ejemplo}
+Si el costo de producir $x$ unidades está dado por:
+\[
+C(x)=x^2+3x
+\]
+El costo marginal es:
+\[
+C'(x)=2x+3
+\]
+
+\subsection{Ejercicios}
+\begin{enumerate}
+  \item Dada $s(t)=3t^2-2t$, calcula la velocidad y la aceleración.
+  \item Si $T(t)=20+5t$, interpreta $T'(t)$.
+  \item Si el radio de una esfera cambia como $r(t)=2t$, ¿a qué razón cambia el radio?
+\end{enumerate}
+
+\section{Teorema de Rolle}
+
+El Teorema de Rolle establece la existencia de al menos un punto donde la recta tangente a la gráfica de una función es horizontal, siempre que se cumplan ciertas condiciones.
+
+\subsection{Enunciado}
+Sea $f(x)$ una función que cumple:
+\begin{enumerate}
+  \item Es continua en el intervalo cerrado $[a,b]$
+  \item Es derivable en el intervalo abierto $(a,b)$
+  \item $f(a)=f(b)$
+\end{enumerate}
+Entonces existe al menos un punto $c\in(a,b)$ tal que:
+\[
+f'(c)=0
+\]
+
+\subsection{Interpretación geométrica}
+Si la función comienza y termina en el mismo valor, y no tiene saltos ni picos, entonces en algún punto intermedio la pendiente de la tangente debe ser cero.
+
+\subsection{Ejemplo}
+Sea:
+\[
+f(x)=x^2-4x+3 \quad \text{en } [1,3]
+\]
+Verificamos:
+\begin{itemize}
+  \item Es un polinomio, por lo tanto continua y derivable.
+  \item $f(1)=0$ y $f(3)=0$
+\end{itemize}
+
+Derivamos:
+\[
+f'(x)=2x-4
+\]
+Buscamos $f'(c)=0$:
+\[
+2x-4=0 \Rightarrow x=2
+\]
+
+\subsection{Ejercicios}
+\begin{enumerate}
+  \item Verifica si se puede aplicar el Teorema de Rolle a $f(x)=x^3$ en $[-1,1]$.
+  \item Encuentra el valor de $c$ para $f(x)=x^2-1$ en $[-1,1]$.
+\end{enumerate}
+
+%--------------------------------------------------
+
+\section{Teorema del Valor Medio}
+
+El Teorema del Valor Medio generaliza el Teorema de Rolle y relaciona la pendiente promedio con la pendiente instantánea.
+
+\subsection{Enunciado}
+Sea $f(x)$ una función que cumple:
+\begin{enumerate}
+  \item Es continua en $[a,b]$
+  \item Es derivable en $(a,b)$
+\end{enumerate}
+Entonces existe al menos un punto $c\in(a,b)$ tal que:
+\[
+f'(c)=\frac{f(b)-f(a)}{b-a}
+\]
+
+\subsection{Interpretación}
+La pendiente de la recta secante entre $(a,f(a))$ y $(b,f(b))$ coincide con la pendiente de la recta tangente en algún punto intermedio.
+
+\subsection{Ejemplo}
+Sea $f(x)=x^2$ en $[1,3]$.
+\[
+\frac{f(3)-f(1)}{3-1}=\frac{9-1}{2}=4
+\]
+Derivando:
+\[
+f'(x)=2x
+\]
+\[
+2x=4 \Rightarrow x=2
+\]
+
+\subsection{Ejercicios}
+\begin{enumerate}
+  \item Aplica el Teorema del Valor Medio a $f(x)=x^3$ en $[0,2]$.
+  \item Interpreta el Teorema del Valor Medio en términos de velocidad promedio e instantánea.
+\end{enumerate}
+
+%--------------------------------------------------
+
+\section{Problemas de optimización}
+
+Los problemas de optimización buscan maximizar o minimizar una cantidad bajo ciertas restricciones.
+
+\subsection{Estrategia general}
+\begin{enumerate}
+  \item Definir las variables.
+  \item Escribir la función que se desea optimizar.
+  \item Calcular la derivada.
+  \item Resolver $f'(x)=0$.
+  \item Analizar el resultado y dar una interpretación.
+\end{enumerate}
+
+\subsection{Ejemplo}
+Un rectángulo tiene perímetro 20. Determinar las dimensiones que maximizan el área.
+
+Sea $x$ el ancho y $y$ el largo:
+\[
+2x+2y=20 \Rightarrow y=10-x
+\]
+Área:
+\[
+A(x)=x(10-x)=10x-x^2
+\]
+Derivamos:
+\[
+A'(x)=10-2x
+\]
+\[
+10-2x=0 \Rightarrow x=5
+\]
+Entonces:
+\[
+y=5
+\]
+
+\subsection{Conclusión}
+El área máxima se obtiene cuando el rectángulo es un cuadrado.
+
+
+\subsection{Ejercicios}
+\begin{enumerate}
+  \item Un rectángulo tiene perímetro $P=30$. Determina las dimensiones que maximizan su área.
+  \item Una lata cilíndrica debe tener volumen $V=1000$. Determina el radio y la altura que minimizan el área total.
+\end{enumerate}
+
+%--------------------------------------------------
+
+\section{Regla de L'Hôpital}
+
+La Regla de L'Hôpital se utiliza para evaluar límites que presentan ciertas indeterminaciones.
+
+\subsection{Indeterminaciones permitidas}
+\[
+\frac{0}{0}, \quad \frac{\infty}{\infty}
+\]
+
+\subsection{Enunciado}
+Si:
+\[
+\lim_{x\to a}\frac{f(x)}{g(x)}=\frac{0}{0}
+\quad \text{o} \quad
+\frac{\infty}{\infty}
+\]
+y las derivadas existen, entonces:
+\[
+\lim_{x\to a}\frac{f(x)}{g(x)}=
+\lim_{x\to a}\frac{f'(x)}{g'(x)}
+\]
+
+\subsection{Ejemplo}
+\[
+\lim_{x\to0}\frac{\sin x}{x}
+\]
+Derivando numerador y denominador:
+\[
+\lim_{x\to0}\frac{\cos x}{1}=1
+\]
+
+\subsection{Ejemplo al infinito}
+\[
+\lim_{x\to\infty}\frac{\ln x}{x}
+\]
+\[
+\lim_{x\to\infty}\frac{1/x}{1}=0
+\]
+
+\subsection{Advertencias}
+\begin{itemize}
+  \item Solo se aplica si existe una indeterminación válida.
+  \item Se debe derivar numerador y denominador.
+  \item Puede aplicarse más de una vez si es necesario.
+\end{itemize}
+
+\subsection{Ejercicios}
+\begin{enumerate}
+  \item $\displaystyle \lim_{x\to0}\frac{e^x-1}{x}$
+  \item $\displaystyle \lim_{x\to\infty}\frac{x^2}{e^x}$
+  \item $\displaystyle \lim_{x\to0}\frac{1-\cos x}{x^2}$
+\end{enumerate}
+
+\section{Integrales indefinidas}
+
+La integral indefinida es el proceso inverso de la derivada.  
+Si una función $F(x)$ cumple que
+\[
+F'(x)=f(x),
+\]
+entonces
+\[
+\int f(x)\,dx = F(x)+C,
+\]
+donde $C$ es la \textbf{constante de integración}, que aparece porque la derivada de una constante es cero.
+
+\subsection{Ejemplo}
+\[
+\int 2x\,dx = x^2 + C
+\]
+ya que
+\[
+\frac{d}{dx}(x^2)=2x.
+\]
+
+\subsection{Ejercicios}
+\begin{enumerate}
+  \item $\displaystyle \int 3x^2\,dx$
+  \item $\displaystyle \int (5x-1)\,dx$
+  \item $\displaystyle \int \cos x\,dx$
+\end{enumerate}
+
+%------------------------------------------------
+
+\section{Integrales elementales}
+
+Las integrales elementales se resuelven aplicando directamente fórmulas conocidas.
+
+\subsection{Regla de la potencia}
+\[
+\int x^n\,dx=\frac{x^{n+1}}{n+1}+C,\quad n\neq -1.
+\]
+
+\subsection{Ejemplos}
+\[
+\int x^3\,dx=\frac{x^4}{4}+C
+\]
+\[
+\int \sqrt{x}\,dx=\int x^{1/2}\,dx=\frac{2}{3}x^{3/2}+C
+\]
+
+\subsection{Caso especial}
+\[
+\int \frac{1}{x}\,dx=\ln|x|+C
+\]
+
+\subsection{Exponenciales}
+\[
+\int e^x\,dx=e^x+C
+\]
+\[
+\int a^x\,dx=\frac{a^x}{\ln a}+C
+\]
+
+\subsection{Trigonométricas básicas}
+\[
+\int \cos x\,dx=\sin x+C
+\]
+\[
+\int \sin x\,dx=-\cos x+C
+\]
+\[
+\int \sec^2 x\,dx=\tan x+C
+\]
+
+\subsection{Linealidad de la integral}
+\[
+\int \bigl(af(x)+bg(x)\bigr)\,dx
+= a\int f(x)\,dx + b\int g(x)\,dx
+\]
+
+\subsection{Ejercicios}
+\begin{enumerate}
+  \item $\displaystyle \int (x^2+3x+1)\,dx$
+  \item $\displaystyle \int \frac{1}{x^2}\,dx$
+  \item $\displaystyle \int (e^x+\sin x)\,dx$
+\end{enumerate}
+
+%------------------------------------------------
+
+\section{Integrales por sustitución}
+
+La integración por sustitución se utiliza cuando la integral contiene una función compuesta y su derivada.
+
+\subsection{Idea clave}
+Si una integral tiene la forma
+\[
+\int f(g(x))\,g'(x)\,dx,
+\]
+entonces se puede simplificar usando un cambio de variable.
+
+\subsection{Procedimiento}
+\begin{enumerate}
+  \item Definir $u=g(x)$.
+  \item Calcular $du=g'(x)\,dx$.
+  \item Sustituir en la integral.
+  \item Integrar respecto a $u$.
+  \item Regresar a la variable $x$.
+\end{enumerate}
+
+\subsection{Ejemplo}
+\[
+\int 2x\cos(x^2)\,dx
+\]
+Sea $u=x^2$, entonces $du=2x\,dx$:
+\[
+\int \cos u\,du=\sin u + C
+\]
+Por lo tanto,
+\[
+\int 2x\cos(x^2)\,dx=\sin(x^2)+C.
+\]
+
+\subsection{Otro ejemplo}
+\[
+\int \frac{2x}{x^2+1}\,dx
+\]
+Sea $u=x^2+1$, entonces $du=2x\,dx$:
+\[
+\int \frac{1}{u}\,du=\ln|u|+C
+\]
+Resultado:
+\[
+\ln(x^2+1)+C.
+\]
+
+\subsection{Ejercicios}
+\begin{enumerate}
+  \item $\displaystyle \int 3x^2 e^{x^3}\,dx$
+  \item $\displaystyle \int \frac{2x}{\sqrt{x^2+1}}\,dx$
+  \item $\displaystyle \int \sin(5x)\,dx$
+\end{enumerate}
+
+\section{Fórmulas básicas de integración}
+
+A continuación se presentan las fórmulas más utilizadas en la integración de funciones elementales. 
+Estas fórmulas deben memorizarse, pues son la base para resolver la mayoría de los ejercicios.
+
+\subsection{Potencias y logaritmos}
+\[
+\int x^n\,dx=\frac{x^{n+1}}{n+1}+C \quad (n\neq -1)
+\]
+\[
+\int \frac{1}{x}\,dx=\ln|x|+C
+\]
+
+\subsection{Exponenciales}
+\[
+\int e^x\,dx=e^x+C
+\]
+\[
+\int a^x\,dx=\frac{a^x}{\ln a}+C
+\]
+
+\subsection{Trigonométricas}
+\[
+\int \sin x\,dx=-\cos x+C
+\]
+\[
+\int \cos x\,dx=\sin x+C
+\]
+\[
+\int \tan x\,dx=\ln|\sec x|+C
+\]
+\[
+\int \sec^2 x\,dx=\tan x+C
+\]
+\[
+\int \csc^2 x\,dx=-\cot x+C
+\]
+
+\subsection{Linealidad}
+\[
+\int \bigl(af(x)+bg(x)\bigr)\,dx
+= a\int f(x)\,dx + b\int g(x)\,dx
+\]
+
+\subsection{Ejercicios}
+\begin{enumerate}
+  \item $\displaystyle \int (4x^3-2x+1)\,dx$
+  \item $\displaystyle \int (\sin x + e^x)\,dx$
+  \item $\displaystyle \int \frac{5}{x}\,dx$
+\end{enumerate}
+
+%------------------------------------------------
+
+\section{Integración por partes}
+
+La integración por partes se utiliza cuando la integral es un producto de dos funciones.
+
+\subsection{Fórmula de integración por partes}
+\[
+\int u\,dv = uv - \int v\,du
+\]
+
+Esta fórmula se obtiene a partir de la regla del producto para derivadas.
+
+\subsection{Elección de u}
+Una regla práctica para elegir $u$ es la regla \textbf{LIATE}:
+\begin{itemize}
+  \item L: Logarítmicas
+  \item I: Inversas
+  \item A: Algebraicas
+  \item T: Trigonométricas
+  \item E: Exponenciales
+\end{itemize}
+
+Se elige como $u$ la función que aparece primero en la lista.
+
+\subsection{Ejemplo}
+\[
+\int x e^x\,dx
+\]
+
+Elegimos:
+\[
+u=x \quad \Rightarrow \quad du=dx
+\]
+\[
+dv=e^x\,dx \quad \Rightarrow \quad v=e^x
+\]
+
+Aplicando la fórmula:
+\[
+\int x e^x\,dx = x e^x - \int e^x\,dx
+\]
+
+Resultado:
+\[
+\boxed{x e^x - e^x + C}
+\]
+
+\subsection{Otro ejemplo}
+\[
+\int x\cos x\,dx
+\]
+
+\[
+u=x,\quad du=dx
+\]
+\[
+dv=\cos x\,dx,\quad v=\sin x
+\]
+
+\[
+\int x\cos x\,dx = x\sin x - \int \sin x\,dx
+\]
+
+Resultado:
+\[
+\boxed{x\sin x + \cos x + C}
+\]
+
+\subsection{Ejercicios}
+\begin{enumerate}
+  \item $\displaystyle \int x\ln x\,dx$
+  \item $\displaystyle \int x e^{2x}\,dx$
+  \item $\displaystyle \int x\sin x\,dx$
+\end{enumerate}
+
+\section{Integrales trigonométricas utilizando identidades}
+
+Algunas integrales trigonométricas no se resuelven directamente, sino aplicando
+\textbf{identidades trigonométricas} para simplificar la expresión.
+
+\subsection{Identidades básicas}
+\[
+\sin^2 x + \cos^2 x = 1
+\]
+\[
+1+\tan^2 x=\sec^2 x
+\]
+\[
+1+\cot^2 x=\csc^2 x
+\]
+
+También son útiles las identidades de ángulo doble:
+\[
+\sin^2 x=\frac{1-\cos(2x)}{2}, \qquad
+\cos^2 x=\frac{1+\cos(2x)}{2}
+\]
+
+\subsection{Potencias de seno y coseno}
+
+\subsubsection*{Caso 1: Potencia impar de seno o coseno}
+Si una de las potencias es impar, se separa un factor y se usa la identidad fundamental.
+
+\subsection{Ejemplo}
+\[
+\int \sin^3 x \cos x\,dx
+\]
+
+\[
+\sin^3 x = \sin^2 x \sin x = (1-\cos^2 x)\sin x
+\]
+
+Sea $u=\cos x$, entonces $du=-\sin x\,dx$:
+\[
+-\int (1-u^2)\,du = -\left(u-\frac{u^3}{3}\right)+C
+\]
+
+Resultado:
+\[
+-\cos x + \frac{\cos^3 x}{3}+C
+\]
+
+\subsubsection*{Caso 2: Potencias pares de seno y coseno}
+Se usan identidades de ángulo doble.
+
+\subsection{Ejemplo}
+\[
+\int \sin^2 x\,dx
+\]
+
+\[
+\int \frac{1-\cos(2x)}{2}\,dx
+= \frac{1}{2}\left(x-\frac{\sin(2x)}{2}\right)+C
+\]
+
+\subsection{Ejercicios}
+\begin{enumerate}
+  \item $\displaystyle \int \cos^2 x\,dx$
+  \item $\displaystyle \int \sin^3 x\,dx$
+  \item $\displaystyle \int \sin^2 x \cos^2 x\,dx$
+\end{enumerate}
+
+%------------------------------------------------
+
+\section{Sustituciones trigonométricas}
+
+Las sustituciones trigonométricas se utilizan para integrar expresiones que contienen raíces cuadradas de la forma:
+\[
+\sqrt{a^2-x^2}, \quad \sqrt{a^2+x^2}, \quad \sqrt{x^2-a^2}
+\]
+
+\subsection{Sustituciones más comunes}
+\begin{center}
+\begin{tabular}{c c}
+\toprule
+Expresión & Sustitución \\
+\midrule
+$\sqrt{a^2-x^2}$ & $x=a\sin\theta$ \\
+$\sqrt{a^2+x^2}$ & $x=a\tan\theta$ \\
+$\sqrt{x^2-a^2}$ & $x=a\sec\theta$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Ejemplo}
+\[
+\int \sqrt{4-x^2}\,dx
+\]
+
+Sea $x=2\sin\theta$, entonces $dx=2\cos\theta\,d\theta$:
+\[
+\int \sqrt{4-4\sin^2\theta}\,2\cos\theta\,d\theta
+\]
+
+\[
+= \int 2\cos\theta \cdot 2\cos\theta\,d\theta
+=4\int \cos^2\theta\,d\theta
+\]
+
+\[
+=4\int \frac{1+\cos(2\theta)}{2}\,d\theta
+\]
+
+Resultado:
+\[
+2\theta+\sin(2\theta)+C
+\]
+
+Regresando a $x$:
+\[
+\theta=\arcsin\left(\frac{x}{2}\right)
+\]
+
+\subsection{Ejercicios}
+\begin{enumerate}
+  \item $\displaystyle \int \frac{1}{\sqrt{9-x^2}}\,dx$
+  \item $\displaystyle \int \sqrt{x^2+4}\,dx$
+  \item $\displaystyle \int \frac{1}{x\sqrt{x^2-1}}\,dx$
+\end{enumerate}
 
 \end{document}
