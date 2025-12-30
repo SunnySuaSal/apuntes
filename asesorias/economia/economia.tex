@@ -139,6 +139,7 @@ Entonces, el dominio de la composición de función y función inversa es \[ \ma
 \section{Continuidad de una función}
 La tercera pregunta del examen plantea: \textit{Para la función $f(x)=\frac{2x^2-x-1}{x^2-3x+2}$ determina los puntos donde $f(x)$ es discontinua y determina
 el tipo de discontinuidad en cada punto.}
+
 Este problema nos pregunta por la continuidad (o en su defecto, discontinuidad) de una función. 
 Para encontrar sichos puntos de discontinuidad, el procedimiento es el siguiente:
 
@@ -169,5 +170,431 @@ Para encontrar sichos puntos de discontinuidad, el procedimiento es el siguiente
   \item \[ \frac{x^2+1}{x^2-1} \]
   \item \[ \frac{x^2-9}{x^2-3x} \]
 \end{enumerate}
+
+\section{Crecimiento, decrecimiento y concavidad}
+La quinta pregunta del examen plantea: \textit{Considera la función
+\[
+f(x)=2x^3-9x^2+12x-6
+\]
+Determina la primera y segunda derivada, los intervalos donde la función es creciente o decreciente y los intervalos donde es convexa o cóncava.}
+
+\subsection{Primera y segunda derivada}
+Derivamos término a término:
+
+\[
+f'(x)=6x^2-18x+12
+\]
+
+Factorizando:
+
+\[
+f'(x)=6(x-1)(x-2)
+\]
+
+La segunda derivada es:
+
+\[
+f''(x)=12x-18
+\]
+
+---
+
+\subsection{Crecimiento y decrecimiento}
+Los intervalos de crecimiento y decrecimiento se obtienen analizando el signo de la primera derivada.
+
+Resolvemos:
+\[
+f'(x)=0 \Rightarrow x=1,\; x=2
+\]
+
+Estos puntos dividen la recta real en los intervalos:
+\[
+(-\infty,1),\quad (1,2),\quad (2,\infty)
+\]
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{ccc}
+    Intervalo & Signo de $f'(x)$ & Comportamiento\\
+    $(-\infty,1)$ & $+$ & Creciente\\
+    $(1,2)$ & $-$ & Decreciente\\
+    $(2,\infty)$ & $+$ & Creciente
+  \end{tabular}
+\end{table}
+
+\textbf{Resultado:}
+\[
+\text{Creciente en } (-\infty,1)\cup(2,\infty)
+\]
+\[
+\text{Decreciente en } (1,2)
+\]
+
+---
+
+\subsection{Concavidad y convexidad}
+La concavidad se determina analizando el signo de la segunda derivada.
+
+\[
+f''(x)=12x-18=0 \Rightarrow x=\frac{3}{2}
+\]
+
+Dividimos la recta real:
+
+\[
+(-\infty,\tfrac{3}{2}),\quad (\tfrac{3}{2},\infty)
+\]
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{ccc}
+    Intervalo & Signo de $f''(x)$ & Forma\\
+    $(-\infty,\tfrac{3}{2})$ & $-$ & Cóncava\\
+    $(\tfrac{3}{2},\infty)$ & $+$ & Convexa
+  \end{tabular}
+\end{table}
+
+\textbf{Resultado:}
+\[
+\text{Cóncava en } (-\infty,\tfrac{3}{2})
+\]
+\[
+\text{Convexa en } (\tfrac{3}{2},\infty)
+\]
+
+\subsection{Ejercicios}
+\begin{enumerate}
+  \item $f(x)=x^3-3x^2+2$
+  \item $f(x)=-x^2+4x-1$
+  \item $f(x)=x^4-4x^2$
+\end{enumerate}
+
+\section{Máximos y mínimos locales}
+
+La sexta pregunta del examen plantea: \textit{Determina los máximos y mínimos locales de la función
+$f(x)=\frac{1}{2}x^2+\frac{1}{x}$ usando el criterio de la segunda derivada.}
+
+\subsection{Dominio de la función}
+
+Antes de aplicar criterios de derivadas, es importante determinar el dominio de la función.
+El término $\frac{1}{x}$ no está definido en $x=0$, por lo que:
+
+\[
+\text{Dom}(f)=\mathbb{R}\setminus\{0\}
+\]
+
+---
+
+\subsection{Primera derivada}
+
+Derivamos término a término:
+
+\[
+f'(x)=\dv{}{x}\left(\frac{1}{2}x^2\right)+\dv{}{x}\left(\frac{1}{x}\right)
+\]
+
+\[
+f'(x)=x-\frac{1}{x^2}
+\]
+
+---
+
+\subsection{Puntos críticos}
+
+Los puntos críticos se obtienen resolviendo:
+
+\[
+f'(x)=0
+\]
+
+\[
+x-\frac{1}{x^2}=0
+\]
+
+Multiplicamos toda la ecuación por $x^2$ (válido ya que $x\neq 0$):
+
+\[
+x^3-1=0
+\]
+
+\[
+x^3=1 \quad \Rightarrow \quad x=1
+\]
+
+Por lo tanto, el único punto crítico es $x=1$.
+
+---
+
+\subsection{Segunda derivada}
+
+Derivamos nuevamente:
+
+\[
+f''(x)=\dv{}{x}\left(x-\frac{1}{x^2}\right)
+\]
+
+\[
+f''(x)=1+\frac{2}{x^3}
+\]
+
+---
+
+\subsection{Criterio de la segunda derivada}
+
+Evaluamos la segunda derivada en el punto crítico $x=1$:
+
+\[
+f''(1)=1+\frac{2}{1^3}=3
+\]
+
+Como $f''(1)>0$, la función es \textbf{cóncava hacia arriba} en ese punto, por lo tanto existe un
+\textbf{mínimo local} en $x=1$.
+
+---
+
+\subsection{Valor del mínimo local}
+
+Evaluamos la función en $x=1$:
+
+\[
+f(1)=\frac{1}{2}(1)^2+\frac{1}{1}=\frac{1}{2}+1=\frac{3}{2}
+\]
+
+---
+
+\subsection{Conclusión}
+
+La función presenta:
+\begin{itemize}
+  \item Un \textbf{mínimo local} en el punto $\left(1,\frac{3}{2}\right)$.
+  \item No presenta máximos locales.
+\end{itemize}
+
+\subsection{Ejercicios}
+
+Determina los máximos y mínimos locales de las siguientes funciones utilizando el
+\textbf{criterio de la segunda derivada}.  
+En cada caso:
+\begin{itemize}
+  \item Encuentra el dominio.
+  \item Calcula la primera y segunda derivada.
+  \item Determina y clasifica los puntos críticos.
+\end{itemize}
+
+\begin{enumerate}
+  \item \[
+    f(x)=x^3-3x^2+2
+  \]
+
+  \item \[
+    f(x)=x^4-4x^2
+  \]
+
+  \item \[
+    f(x)=\frac{1}{3}x^3-x
+  \]
+
+  \item \[
+    f(x)=x^2+\frac{4}{x}
+  \]
+
+  \item \[
+    f(x)=\ln(x)+x^2 \quad (x>0)
+  \]
+
+  \item \[
+    f(x)=\frac{x^2+1}{x}
+  \]
+
+  \item \[
+    f(x)=x^2-2x+\frac{1}{x}
+  \]
+
+  \item \[
+    f(x)=e^x-x
+  \]
+
+ \end{enumerate}
+
+\paragraph{Comentario}
+No todos los puntos críticos pueden clasificarse con el criterio de la segunda derivada.
+En caso de que $f''(x_0)=0$, se debe recurrir al análisis del signo de la primera derivada
+o al estudio gráfico de la función.
+
+\section{Integrales definidas}
+
+La séptima pregunta del examen plantea: \textit{Calcula las siguientes integrales. Escribe todos los pasos que seguiste para obtener el resultado final.}
+
+\subsection*{Inciso (a)}
+
+\[
+\int_{-1}^{1} (2-7x+6x^2)\,dx
+\]
+
+\paragraph{Paso 1: Integrar término a término}
+
+\[
+\int (2-7x+6x^2)\,dx
+=
+\int 2\,dx
+-
+\int 7x\,dx
++
+\int 6x^2\,dx
+\]
+
+\[
+= 2x - \frac{7}{2}x^2 + 2x^3
+\]
+
+\paragraph{Paso 2: Evaluar en los límites}
+
+\[
+\left[2x - \frac{7}{2}x^2 + 2x^3\right]_{-1}^{1}
+=
+\left(2(1)-\frac{7}{2}(1)^2+2(1)^3\right)
+-
+\left(2(-1)-\frac{7}{2}(-1)^2+2(-1)^3\right)
+\]
+
+\paragraph{Paso 3: Calcular cada evaluación}
+
+\[
+= \left(2-\frac{7}{2}+2\right)
+-
+\left(-2-\frac{7}{2}-2\right)
+\]
+
+\[
+= \frac{1}{2} - \left(-\frac{15}{2}\right)
+\]
+
+\[
+= \frac{16}{2}=8
+\]
+
+\paragraph{Resultado}
+
+\[
+\boxed{8}
+\]
+
+---
+
+\subsection*{Inciso (b)}
+
+\[
+\int_{1}^{2} 2(2x-2)^7\,dx
+\]
+
+\paragraph{Paso 1: Sustitución}
+
+Sea:
+\[
+u = 2x-2 \quad \Rightarrow \quad du = 2\,dx
+\]
+
+La integral se transforma en:
+
+\[
+\int u^7\,du
+\]
+
+\paragraph{Paso 2: Cambiar los límites}
+
+Cuando $x=1$:
+\[
+u = 2(1)-2 = 0
+\]
+
+Cuando $x=2$:
+\[
+u = 2(2)-2 = 2
+\]
+
+Entonces:
+
+\[
+\int_{0}^{2} u^7\,du
+\]
+
+\paragraph{Paso 3: Integrar}
+
+\[
+\int u^7\,du = \frac{u^8}{8}
+\]
+
+\paragraph{Paso 4: Evaluar en los límites}
+
+\[
+\left[\frac{u^8}{8}\right]_{0}^{2}
+=
+\frac{2^8}{8}-0
+=
+\frac{256}{8}
+=32
+\]
+
+\paragraph{Resultado}
+
+\[
+\boxed{32}
+\]
+
+\subsection{Ejercicios}
+
+Calcula las siguientes integrales definidas.  
+En cada caso, escribe todos los pasos y justifica el método utilizado.
+
+\begin{enumerate}
+  \item \[
+    \int_{0}^{3} (4x^2-6x+1)\,dx
+  \]
+
+  \item \[
+    \int_{-2}^{2} (5x^3-4x)\,dx
+  \]
+  \textit{(Sugerencia: observa la simetría de la función.)}
+
+  \item \[
+    \int_{1}^{4} (3x^2-2x)\,dx
+  \]
+
+  \item \[
+    \int_{0}^{1} (6-8x+2x^2)\,dx
+  \]
+
+  \item \[
+    \int_{1}^{2} 3(3x-1)^2\,dx
+  \]
+
+  \item \[
+    \int_{0}^{2} 4(x+1)^3\,dx
+  \]
+
+  \item \[
+    \int_{-1}^{1} (x^4-x^2)\,dx
+  \]
+
+  \item \[
+    \int_{2}^{5} (2x-3)^5\,dx
+  \]
+
+  \item \[
+    \int_{1}^{e} \frac{1}{x}\,dx
+  \]
+
+  \item \[
+    \int_{0}^{\pi} \sin x \,dx
+  \]
+\end{enumerate}
+
+\paragraph{Comentario}
+\begin{itemize}
+  \item En integrales de polinomios se integra término a término.
+  \item Cuando aparece una expresión del tipo $(ax+b)^n$, conviene usar sustitución.
+  \item En funciones pares o impares, el intervalo simétrico puede simplificar el cálculo.
+\end{itemize}
+
 
 \end{document}
