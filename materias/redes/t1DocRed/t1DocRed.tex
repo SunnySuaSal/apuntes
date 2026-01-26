@@ -41,7 +41,239 @@ Cisco Packet Tracer.
 \end{figure}
 
 \section{Generación de subredes}
-Hola
+\subsection{IPv4}
+Una IPv4 es una dirección (identificador numérico) de la forma \textbf{x.x.x.x} donde cada x es 
+un \textit{octeto}, esto porque está compuesto de 8 bits, alcanzando entonces cada octeto el rango 
+decimal de 0 - 255.
+
+\subsection{Prefijo de red}
+Al existir una inmensa cantidad de direcciones IP posibles y surgir la necesidad de dividir redes grandes 
+en subredes más pequeñas, se inventó el \textit{prefijo de red}, que utilizando una notación de diagonal (/n) 
+divide el rango de direcciones IP en dos: la porción de red y la porción de host, comenzando la división en el bit n.
+
+Por ejemplo, en este ejercicio, tenemos la red principal \textbf{192.168.128.0/20} esto quiere decir que, 
+hasta el bit número 20 de la dirección IP correspnde a la porción de red, es decir, aquellos bits que se mantienen 
+estáticos para todas las direcciones que asignemos dentro de esta red, por lo que funcionan como un indicador de la misma.
+El resto de bits después del bit 20 en este ejemplo corresponden a la porción de host, es decir, aquellos bits que 
+sí cambian para darle a cada host (end device) una dirección IP única dentro de la red.
+
+Continuando con el ejemplo, el bit 20 queda dentro del tercer octeto, por lo que para calcular 
+las subredes, podemos expresar la red como se muestra en la Figura \ref{fig:redBinarioExp}.
+
+\begin{figure}[H]
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]{redBinarioExp.jpeg}
+  \end{center}
+  \caption{Red con el tercer y cuarto octeto en binario}\label{fig:redBinarioExp}
+\end{figure}
+
+\subsection{Subneteo}
+Ahora, en el ejercicio nos piden dividir esta red en 7 subredes (delimitadas por los routers).
+Para calcular el prefijo de red de estas subredes (asignandole a cada red la máxima cantidad de direcciones posibles 
+de manera equivalente), calculamos el numero de bits que requerimos para 7 subredes.
+
+\[ 2^3 = 8 \]
+
+Con 3 bits, podemos definir hasta 8 subredes, lo más cercano a lo que nos pide el ejercicio sin pasarnos.
+Entonces, el prefijo de red para cada una de estas 7 subredes será \[ 20 + 3 = 23 \rightarrow /23 \]
+
+\subsection{Máscara de red}
+Para calcular la máscara de red (en decimal, como normalmente se pide al configurar las redes) a partir 
+del prefijo de red, ponemos todos los primeros n bits (porción de red) en 1 y el resto (porción de host) 
+en 0 y convertimos a decimal.
+
+En este ejercicio, con el prefijo de red $/23$, tenemos (Figura \ref{fig:mascaraRedExp}):
+
+\begin{figure}[H]
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]{mascaraRedExp.jpeg}
+  \end{center}
+  \caption{Máscara de red en binario y decimal}\label{fig:mascaraRedExp}
+\end{figure}
+
+Tenemos entonces la máscara de red: \textbf{255.255.254.0}
+
+\subsection{Tamaño del bloque}
+Para subneteo en decimal, se utiliza la fórmula:
+\[ \text{Tamaño del bloque} = 256 - \text{Valor del octeto de la máscara} \]
+En este caso: $256 - 254 = 2$. Ese 2 es el salto decimal entre subredes en ese octeto.
+
+Así, podemos calcular nuestras 7 subredes:
+\begin{enumerate}
+  \item 192.168.128.0/23
+  \item 192.168.130.0/23
+  \item 192.168.132.0/23
+  \item 192.168.134.0/23
+  \item 192.168.136.0/23
+  \item 192.168.138.0/23
+  \item 192.168.140.0/23
+\end{enumerate}
+
+\subsection{Reglas generales para subredes}
+Para cualquier IPv4:
+\begin{itemize}
+  \item ID de red:
+    Es la primera dirección del bloque. Todos los bits de host en 0.
+  \item Primera dirección utilizable:
+    ID de red $+ 1$
+  \item Broadcast:
+    Es la última dirección del bloque. Todos los bits de host en 1.
+  \item Última dirección utilizable:
+    Broadcast $- 1$
+  \item Máscara de red:
+    La misma para todas.
+\end{itemize}
+
+\subsection{Convertir de decimal a binario}
+Justo antes de calcular las subredes para el ejercicio, resulta útil 
+repasar cómo convertir npumeros decimales a binarios.
+
+Primero necesitamos saber cuántos bits necesitamos para representar el número, con la siguiente 
+fórmula: \[ n = \left\lceil \log_2(d) \right\rceil \] donde n es el número de bits necesarios 
+para representar el número decimal d.
+
+Pongamos de ejemplo el número decimal 130: \[ \log_2(130) = 7.0223 \rightarrow \lceil 7.0223 \rceil = 8 \]
+
+Entonces Escribimos los valores de $2^0 \to 2^{n-1}$ en orden ascendente, como en la Figura \ref{fig:twoPowersEmpty}.
+
+\begin{figure}[H]
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]{twoPowersEmpty.jpeg}
+  \end{center}
+  \caption{Potencias de dos ordenadas}\label{fig:twoPowersEmpty}
+\end{figure}
+
+Y el algritmo es:
+\begin{enumerate}
+  \item Busca la potencia mayor que no pase de $d$ (y asígnale 1).
+  \item Resta el valor de esa potenica a $d$.
+  \item Repite el paso 1 hasta que $d = 0$ (asigna 0 a las potencias restantes).
+\end{enumerate}
+
+Continuando con el ejemplo de 130 (Figura \ref{fig:binarioADecimal130}):
+
+\begin{figure}[H]
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]{binarioADecimal130.jpeg}
+  \end{center}
+  \caption{Ejemplo conversion 130 decimal a binario}\label{fig:binarioADecimal130}
+\end{figure}
+
+Así, tenemos que $130_{10} = 10000010_2$
+
+\subsection{Terminando información de subredes del ejercicio}
+Podemos entonces calcular la información de las 7 subredes para este ejercicio:
+
+\begin{table}[H]
+\centering
+\caption*{Subred 1: 192.168.128.0/23}
+\begin{tabular}{@{}ll@{}}
+\toprule
+ID de red                   & 192.168.128.0 \\ 
+Primera dirección utilizable & 192.168.128.1 \\
+Última dirección utilizable  & 192.168.128.254 \\
+Broadcast                   & 192.168.128.255 \\
+Máscara de red               & 255.255.254.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[H]
+\centering
+\caption*{Subred 2: 192.168.130.0/23}
+\begin{tabular}{@{}ll@{}}
+\toprule
+ID de red                   & 192.168.130.0 \\ 
+Primera dirección utilizable & 192.168.130.1 \\
+Última dirección utilizable  & 192.168.131.254 \\
+Broadcast                   & 192.168.131.255 \\
+Máscara de red               & 255.255.254.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption*{Subred 3: 192.168.132.0/23}
+\begin{tabular}{@{}ll@{}}
+\toprule
+ID de red                   & 192.168.132.0 \\ 
+Primera dirección utilizable & 192.168.132.1 \\
+Última dirección utilizable  & 192.168.133.254 \\
+Broadcast                   & 192.168.133.255 \\
+Máscara de red               & 255.255.254.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption*{Subred 4: 192.168.134.0/23}
+\begin{tabular}{@{}ll@{}}
+\toprule
+ID de red                   & 192.168.134.0 \\ 
+Primera dirección utilizable & 192.168.134.1 \\
+Última dirección utilizable  & 192.168.135.254 \\
+Broadcast                   & 192.168.135.255 \\
+Máscara de red               & 255.255.254.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption*{Subred 5: 192.168.136.0/23}
+\begin{tabular}{@{}ll@{}}
+\toprule
+ID de red                   & 192.168.136.0 \\ 
+Primera dirección utilizable & 192.168.136.1 \\
+Última dirección utilizable  & 192.168.137.254 \\
+Broadcast                   & 192.168.137.255 \\
+Máscara de red               & 255.255.254.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption*{Subred 6: 192.168.138.0/23}
+\begin{tabular}{@{}ll@{}}
+\toprule
+ID de red                   & 192.168.138.0 \\ 
+Primera dirección utilizable & 192.168.138.1 \\
+Última dirección utilizable  & 192.168.139.254 \\
+Broadcast                   & 192.168.139.255 \\
+Máscara de red               & 255.255.254.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption*{Subred 7: 192.168.140.0/23}
+\begin{tabular}{@{}ll@{}}
+\toprule
+ID de red                   & 192.168.140.0 \\ 
+Primera dirección utilizable & 192.168.140.1 \\
+Última dirección utilizable  & 192.168.141.254 \\
+Broadcast                   & 192.168.141.255 \\
+Máscara de red               & 255.255.254.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Evidencias procedimientos}
+En la Figura \ref{fig:procedimientoSubredes} pueden verse los diagramas utilizados para el cálculo de la 
+información de las subredes para este ejercicio.
+
+\begin{figure}[H]
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]{procedimientoSubredes.jpeg}
+  \end{center}
+  \caption{procedimiento cálculo de información subredes}\label{fig:procedimientoSubredes}
+\end{figure}
+
 
 
 \end{document}
