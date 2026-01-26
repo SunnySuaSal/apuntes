@@ -274,6 +274,65 @@ información de las subredes para este ejercicio.
   \caption{procedimiento cálculo de información subredes}\label{fig:procedimientoSubredes}
 \end{figure}
 
+\section*{Tabla de direccionamiento}
 
+Todas las subredes utilizan la máscara \textbf{255.255.254.0 (/23)}.\
+La primera dirección usable de cada subred se asigna como \textbf{gateway}.\
+Los routers no tienen gateway configurado.
+
+\bigskip
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+\textbf{Dispositivo} & \textbf{Interfaz} & \textbf{IP} & \textbf{Máscara de red} & \textbf{Gateway} \\
+\hline
+\multicolumn{5}{|c|}{\textbf{Router R1}} \\
+\hline
+R1 & GigabitEthernet0/0 & 192.168.128.1 & 255.255.254.0 & -- \\
+R1 & GigabitEthernet0/1 & 192.168.130.1 & 255.255.254.0 & -- \\
+R1 & Serial0/0/0        & 192.168.138.1 & 255.255.254.0 & -- \\
+R1 & Serial0/0/1        & 192.168.140.1 & 255.255.254.0 & -- \\
+\hline
+\multicolumn{5}{|c|}{\textbf{Router R2}} \\
+\hline
+R2 & Serial0/0/0        & 192.168.138.2 & 255.255.254.0 & -- \\
+R2 & GigabitEthernet0/0 & 192.168.134.1 & 255.255.254.0 & -- \\
+R2 & GigabitEthernet0/1 & 192.168.136.1 & 255.255.254.0 & -- \\
+\hline
+\multicolumn{5}{|c|}{\textbf{Router R3}} \\
+\hline
+R3 & Serial0/0/0        & 192.168.140.2 & 255.255.254.0 & -- \\
+R3 & GigabitEthernet0/0 & 192.168.132.1 & 255.255.254.0 & -- \\
+\hline
+\multicolumn{5}{|c|}{\textbf{Switches (IP de administración)}} \\
+\hline
+S1 & VLAN 1 & 192.168.128.3 & 255.255.254.0 & 192.168.128.1 \\
+S2 & VLAN 1 & 192.168.128.2 & 255.255.254.0 & 192.168.128.1 \\
+S3 & VLAN 1 & 192.168.134.2 & 255.255.254.0 & 192.168.134.1 \\
+S4 & VLAN 1 & 192.168.136.2 & 255.255.254.0 & 192.168.136.1 \\
+S5 & VLAN 1 & 192.168.132.2 & 255.255.254.0 & 192.168.132.1 \\
+S6 & VLAN 1 & 192.168.130.2 & 255.255.254.0 & 192.168.130.1 \\
+\hline
+\multicolumn{5}{|c|}{\textbf{PCs}} \\
+\hline
+PCA & NIC & 192.168.128.10 & 255.255.254.0 & 192.168.128.1 \\
+PCB & NIC & 192.168.128.11 & 255.255.254.0 & 192.168.128.1 \\
+PCC & NIC & 192.168.128.12 & 255.255.254.0 & 192.168.128.1 \\
+PCD & NIC & 192.168.134.10 & 255.255.254.0 & 192.168.134.1 \\
+PCE & NIC & 192.168.134.11 & 255.255.254.0 & 192.168.134.1 \\
+PCF & NIC & 192.168.136.10 & 255.255.254.0 & 192.168.136.1 \\
+PCG & NIC & 192.168.136.11 & 255.255.254.0 & 192.168.136.1 \\
+PCH & NIC & 192.168.132.10 & 255.255.254.0 & 192.168.132.1 \\
+PCI & NIC & 192.168.132.11 & 255.255.254.0 & 192.168.132.1 \\
+\hline
+\multicolumn{5}{|c|}{\textbf{Servidores}} \\
+\hline
+Serv1 & NIC & 192.168.130.10 & 255.255.254.0 & 192.168.130.1 \\
+Serv2 & NIC & 192.168.130.11 & 255.255.254.0 & 192.168.130.1 \\
+\hline
+\end{tabular}
+\end{center}
 
 \end{document}
