@@ -16,7 +16,7 @@
 \usepackage[spanish]{babel}
 
 \title{
-Tarea 1: Documentación de red\\[0.5em]
+Tarea 1: Documentación de red IPv6\\[0.5em]
 \large Administración de redes
 }
 
@@ -36,10 +36,41 @@ Podemos observar en la Figura \ref{fig:topologia} un diagrama de la topología d
 Cisco Packet Tracer.
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.8\textwidth]{diagramaTopologia.png}
+  \includegraphics[width=0.8\textwidth]{topologia.png}
   \caption{Topología de la red}\label{fig:topologia}
 \end{figure}
 
 \section{Generación de subredes}
-\subsection{IPv4}
+\subsection{IPv6}
+IPv6 es la versión más reciente del protocolo IP, diseñada para reemplazar IPv4 y solucionar principalmente la 
+escasez de direcciones IP.
+
+IPv6 utiliza direcciones de 128 bits, organizados en 8 \textit{hextetos} 
+(4 digitos hexadecimales) separados por dos puntos.
+
+\section{Prefijo de red}
+Funciona igual y con la misma notación de diagonal de IPv4, indicando con una diagonal el número de bits que 
+perteneces a la parte de red.
+
+En la práctica, es recomendado siempre utilizar el prefijo /64 al trabajar con redes en IPv6, principalmente por facilidad, 
+pues el numero de host disponibles es enorme.
+
+\subsection{Subneteo}
+En el ejercicio nos piden dividir la red principal en 6 subredes (delimitadas por los routers).
+Para hacer esto, puesto que el prefijo de red es /64 (4to hexteto), podemos usar este último como \textbf{identificador de subred}.
+Al ser hexadecimal, lon numeros avanzan naturalmente de 0 a F.
+Obtenemos entonces las siguientes subredes:
+\begin{enumerate}
+  \item 2001:AF:0:0::/64
+  \item 2001:AF:0:1::/64
+  \item 2001:AF:0:2::/64
+  \item 2001:AF:0:3::/64
+  \item 2001:AF:0:4::/64
+  \item 2001:AF:0:5::/64
+\end{enumerate}
+
+En IPv6 no existen las direcciones de broadcast ni el concepto formal de primera y última dirección utilizable.
+El direccionamiento se basa únicamente en prefijos, siendo común el uso de /64, donde los primeros 64 bits identifican la red 
+y el resto los hosts.
+
 \end{document}
