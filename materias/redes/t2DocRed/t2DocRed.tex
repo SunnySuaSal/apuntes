@@ -73,4 +73,91 @@ En IPv6 no existen las direcciones de broadcast ni el concepto formal de primera
 El direccionamiento se basa únicamente en prefijos, siendo común el uso de /64, donde los primeros 64 bits identifican la red 
 y el resto los hosts.
 
+\section{Tabla de direccionamiento}
+
+IPv6 reemplaza el broadcast por multicast, utilizando direcciones de prefijo FF00::/8. Además, cada interfaz 
+posee una dirección link-local FE80::/10, usada para comunicación local, descubrimiento de nodos vecinos 
+y enrutamiento, razón por la cuál una interfaz IPv6 suele tener tanto una dirección global como una link-local.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{c c r c r}
+\toprule
+Dispositivo & Interfaz & IP & Prefijo & Gateway \\
+\midrule
+
+\multirow[t]{2}{*}{R1} & \multirow[t]{2}{*}{F0/1} & 2001:AF::1        & /64 & -- \\
+                       &                         & FE80::1           &     &    \\
+
+\multirow[t]{2}{*}{R1} & \multirow[t]{2}{*}{F0/2} & 2001:AF:0:1::1    & /64 & -- \\
+                       &                          & FE80::1           &     &    \\
+
+\multirow[t]{2}{*}{R1} & \multirow[t]{2}{*}{S0/0/0} & 2001:AF:0:5::1  & /64 & -- \\
+                       &                            & FE80::1         &     &    \\
+
+\midrule
+
+\multirow[t]{2}{*}{S1} & \multirow[t]{2}{*}{VLAN1} & 2001:AF::2        & /64 & FE80::1 \\
+                       &                           & FE80::2           &     &         \\
+
+\multirow[t]{2}{*}{Serv1} & \multirow[t]{2}{*}{NIC} & 2001:AF::3      & /64 & FE80::1 \\
+                          &                          & FE80::3         &     &         \\
+
+\midrule
+
+\multirow[t]{2}{*}{S2} & \multirow[t]{2}{*}{VLAN1} & 2001:AF:0:1::2    & /64 & FE80::1 \\
+                       &                           & FE80::2           &     &         \\
+
+\multirow[t]{2}{*}{Serv2} & \multirow[t]{2}{*}{NIC} & 2001:AF:0:1::3  & /64 & FE80::1 \\
+                          &                          & FE80::3         &     &         \\
+
+\midrule
+
+\multirow[t]{2}{*}{R2} & \multirow[t]{2}{*}{F0/1} & 2001:AF:0:2::1    & /64 & -- \\
+                       &                          & FE80::1           &     &    \\
+
+\multirow[t]{2}{*}{S3} & \multirow[t]{2}{*}{VLAN1} & 2001:AF:0:2::2  & /64 & FE80::1 \\
+                       &                           & FE80::2         &     &         \\
+
+\multirow[t]{2}{*}{Serv3} & \multirow[t]{2}{*}{NIC} & 2001:AF:0:2::3 & /64 & FE80::1 \\
+                          &                          & FE80::3        &     &         \\
+
+\midrule
+
+\multirow[t]{2}{*}{R3} & \multirow[t]{2}{*}{F0/1} & 2001:AF:0:3::1    & /64 & -- \\
+                       &                          & FE80::1           &     &    \\
+
+\multirow[t]{2}{*}{S4} & \multirow[t]{2}{*}{VLAN1} & 2001:AF:0:3::2  & /64 & FE80::1 \\
+                       &                           & FE80::2         &     &         \\
+
+\multirow[t]{2}{*}{Serv4} & \multirow[t]{2}{*}{NIC} & 2001:AF:0:3::3 & /64 & FE80::1 \\
+                          &                          & FE80::3        &     &         \\
+
+\midrule
+
+\multirow[t]{2}{*}{S5} & \multirow[t]{2}{*}{VLAN1} & 2001:AF:0:3::4  & /64 & FE80::1 \\
+                       &                           & FE80::4         &     &         \\
+
+\multirow[t]{2}{*}{Serv5} & \multirow[t]{2}{*}{NIC} & 2001:AF:0:3::5 & /64 & FE80::1 \\
+                          &                          & FE80::5        &     &         \\
+
+\midrule
+
+\multirow[t]{2}{*}{R3} & \multirow[t]{2}{*}{S0/0/0} & 2001:AF:0:4::1 & /64 & -- \\
+                       &                            & FE80::1        &     &    \\
+
+\multirow[t]{2}{*}{R2} & \multirow[t]{2}{*}{S0/0/1} & 2001:AF:0:4::2 & /64 & -- \\
+                       &                            & FE80::2        &     &    \\
+
+\midrule
+
+\multirow[t]{2}{*}{R2} & \multirow[t]{2}{*}{S0/0/0} & 2001:AF:0:5::2 & /64 & -- \\
+                       &                            & FE80::2        &     &    \\
+
+\bottomrule
+\end{tabular}
+\caption{Tabla de direccionamiento}
+\label{tab:direccionamiento}
+\end{table}
+
 \end{document}
