@@ -1,0 +1,238 @@
+\documentclass[12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath, amssymb, amsfonts, cancel}
+\usepackage{graphicx}
+\usepackage[letterpaper, left=1in, right=1in, top=1in, bottom=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{colortbl}
+\usepackage{xcolor}
+\definecolor{paleYellow}{RGB}{255,255,180}
+\usepackage{physics}
+\usepackage{hyperref}
+\usepackage[spanish]{babel}
+
+\title{
+Práctica 1: Evaluación Integral de Diseño y Optimización de Redes con VLSM\\[0.5em]
+\large Administración de redes
+}
+
+\author{
+Jorge Alberto Suarez Saldana\\
+\small Matrícula: 355992\\
+\small Profesor: Raymundo Antonio González Grimaldo
+}
+
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Generación de subredes}
+\begin{table}[H]
+\centering
+\caption*{Subred 1: Departamento de desarrollo}
+\begin{tabular}{@{}ll@{}}
+\toprule
+ID de red                   & 192.168.8.0 \\ 
+Primera dirección utilizable & 192.168.8.1 \\
+Última dirección utilizable  & 192.168.9.254 \\
+Broadcast                   & 192.168.9.255 \\
+Máscara de red               & 255.255.254.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[H]
+\centering
+\caption*{Subred 2: Departamento de ventas}
+\begin{tabular}{@{}ll@{}}
+\toprule
+ID de red                   & 192.168.10.0 \\ 
+Primera dirección utilizable & 192.168.10.1 \\
+Última dirección utilizable  & 192.168.10.126 \\
+Broadcast                   & 192.168.10.127 \\
+Máscara de red               & 255.255.255.128 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption*{Subred 3: Departamento de soporte}
+\begin{tabular}{@{}ll@{}}
+\toprule
+ID de red                   & 192.168.10.128 \\ 
+Primera dirección utilizable & 192.168.10.129 \\
+Última dirección utilizable  & 192.168.10.158 \\
+Broadcast                   & 192.168.10.159 \\
+Máscara de red               & 255.255.255.224 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption*{Subred 4: Departamento de derechos humanos}
+\begin{tabular}{@{}ll@{}}
+\toprule
+ID de red                   & 192.168.10.160 \\ 
+Primera dirección utilizable & 192.168.10.161 \\
+Última dirección utilizable  & 192.168.10.174 \\
+Broadcast                   & 192.168.10.175 \\
+Máscara de red               & 255.255.255.240 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption*{Subred 5: Administrador}
+\begin{tabular}{@{}ll@{}}
+\toprule
+ID de red                   & 172.16.10.0 \\ 
+Primera dirección utilizable & 172.16.10.1 \\
+Última dirección utilizable  & 172.16.10.2 \\
+Broadcast                   & 172.16.10.3 \\
+Máscara de red               & 255.255.255.252 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+\textbf{Dispositivo} & \textbf{Interfaz} & \textbf{IP} & \textbf{Máscara de red} & \textbf{Gateway} \\
+\hline
+\multicolumn{5}{|c|}{\textbf{Router R1}} \\
+\hline
+R1 & Giga 0/0/0 & 192.168.10.161 & 255.255.255.240 & -- \\
+R1 & Giga 0/0/1 & 172.16.10.1 & 255.255.255.252 & -- \\
+\hline
+\multicolumn{5}{|c|}{\textbf{Switch S1}} \\
+\hline
+S1 & VLAN 1 & 192.168.10.162 & 255.255.255.240 & 192.168.10.161 \\
+\hline
+\multicolumn{5}{|c|}{\textbf{PCs}} \\
+\hline
+PC-A & NIC & 192.168.10.174 & 255.255.255.240 & 192.168.10.161 \\
+PC-B & NIC & 192.168.10.173 & 255.255.255.240 & 192.168.10.161 \\
+PC-C & NIC & 192.168.10.172 & 255.255.255.240 & 192.168.10.161 \\
+PC-Admin & NIC & 172.16.10.2 & 255.255.255.252 & 172.16.10.1 \\
+\hline
+\end{tabular}
+\end{center}
+
+
+\section{Pruebas de conectividad de los equipos}
+Tras configurar correctamente mediante la CLI los equipos de la red, podemos realizar las siguientes pruebas de conectividad:
+
+\begin{figure}[H]
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]{ping_PCA-PCB.png}
+  \end{center}
+  \caption{Ping de la PC-A a la PC-B}\label{fig:ping_PCA-PCB}
+\end{figure}
+
+\begin{figure}[H]
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]{ping_PCB-R1.png}
+  \end{center}
+  \caption{Ping de la PC-B al R1}\label{fig:ping_PCB-R1}
+\end{figure}
+
+\begin{figure}[H]
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]{ping_PCADM-PCC.png}
+  \end{center}
+  \caption{Ping de la PC-ADMIN a la PC-C}\label{fig:ping_PCADM-PCC}
+\end{figure}
+
+\section{Salida del comando show running-config de cada dispositivo}
+Para confirmar que los equipos de red estén correctamente configurados, podemos ejecutar comandos como \textit{show running-config} 
+y \textit{show ip interface brief}.
+
+\begin{figure}[H]
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]{runningConfig_S1.png}
+  \end{center}
+  \caption{Comando show running-config en S1}\label{fig:runningConfig_S1}
+\end{figure}
+
+\begin{figure}[H]
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]{interface_S1.png}
+  \end{center}
+  \caption{Comando show ip interface brief en S1}\label{fig:interface_S1}
+\end{figure}
+
+\begin{figure}[H]
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]{runningConfig_R1.png}
+  \end{center}
+  \caption{Comando show running-config en R1}\label{fig:runningConfig_R1}
+\end{figure}
+
+\begin{figure}[H]
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]{interface_R1.png}
+  \end{center}
+  \caption{Comando show ip interface brief en R1}\label{fig:interface_R1}
+\end{figure}
+
+\section{Equipo físico}
+La práctica, además de en el simulador de Cisco Packet Tracer, también se realizó en equipo físico en el laboratorio de redes 
+y fue evaluada por el profesor.
+
+A continuación, las imágenes de evidencia de la realización de dicha práctica en equipo físico:
+
+\begin{figure}[H]
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]{evidencia1.JPG}
+  \end{center}
+  \caption{Prueba de conección 1}\label{fig:evidencia1}
+\end{figure}
+
+\begin{figure}[H]
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]{evidencia2.JPG}
+  \end{center}
+  \caption{Prueba de conección 2}\label{fig:evidencia2}
+\end{figure}
+
+\begin{figure}[H]
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]{evidencia3.JPG}
+  \end{center}
+  \caption{Prueba de conección 3}\label{fig:evidencia3}
+\end{figure}
+
+\begin{figure}[H]
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]{evidencia4.JPG}
+  \end{center}
+  \caption{Prueba de conección 4}\label{fig:evidencia4}
+\end{figure}
+
+\begin{figure}[H]
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]{evidencia5.JPG}
+  \end{center}
+  \caption{Prueba de conección 5}\label{fig:evidencia5}
+\end{figure}
+
+\begin{figure}[H]
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]{evidencia6.jpg}
+  \end{center}
+  \caption{Prueba de equipo físico en el que trabajamos}\label{fig:evidencia6}
+\end{figure}
+
+
+\end{document}
+
