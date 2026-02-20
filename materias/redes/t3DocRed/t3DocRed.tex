@@ -1,0 +1,147 @@
+\documentclass[12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath, amssymb, amsfonts, cancel}
+\usepackage{graphicx}
+\usepackage[letterpaper, left=1in, right=1in, top=1in, bottom=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{colortbl}
+\usepackage{xcolor}
+\definecolor{paleYellow}{RGB}{255,255,180}
+\usepackage{physics}
+\usepackage{hyperref}
+\usepackage[spanish]{babel}
+
+\title{
+Tarea 3: Configuración de VLANs\\[0.5em]
+\large Administración de redes
+}
+
+\author{
+Jorge Alberto Suarez Saldana\\
+\small Matrícula: 355992\\
+\small Profesor: Raymundo Antonio González Grimaldo
+}
+
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Topología de la red}
+Podemos observar en la Figura \ref{fig:topologia} un diagrama de la topología de la red en el modo lógico del simulador
+Cisco Packet Tracer.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{diagramaTopologia.png}
+  \caption{Topología de la red}\label{fig:topologia}
+\end{figure}
+
+\section{Tabla de direccionamiento}
+
+\bigskip
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+\textbf{Dispositivo} & \textbf{VLAN} & \textbf{IP} & \textbf{Máscara de red} & \textbf{Gateway} \\
+\hline
+\multicolumn{5}{|c|}{\textbf{VLAN 10 - Alumnos}} \\
+\hline
+R1 & 10 & 52.10.10.1 & 255.255.255.0 & -- \\
+PC-A & 10 & 52.10.10.10 & 255.255.255.0 & 52.10.10.1 \\
+PC-C & 10 & 52.10.10.11 & 255.255.255.0 & 52.10.10.1 \\
+\hline
+\multicolumn{5}{|c|}{\textbf{VLAN 20 - Profesores}} \\
+\hline
+R1 & 20 & 52.10.20.1 & 255.255.255.0 & -- \\
+PC-B & 20 & 52.10.20.10 & 255.255.255.255.0 & 52.10.20.1 \\
+PC-D & 20 & 52.10.20.11 & 255.255.255.0 & 52.10.20.1 \\
+\hline
+\multicolumn{5}{|c|}{\textbf{VLAN 40 - Admin (Nativa)}} \\
+\hline
+R1 & 40 & 52.10.40.1 & 255.255.255.0 & -- \\
+PC-E & 40 & 52.10.40.10 & 255.255.255.0 & 52.10.40.1 \\
+PC-F & 40 & 52.10.40.11 & 255.255.255.0 & 52.10.40.1 \\
+\hline
+\multicolumn{5}{|c|}{\textbf{VLAN 50 - RH}} \\
+\hline
+R1 & 50 & 192.168.50.1 & 255.255.255.0 & -- \\
+PC-G & 50 & 192.168.50.10 & 255.255.255.0 & 192.168.50.1\\
+PC-H & 50 & 192.168.50.11 & 255.255.255.0 & 192.168.50.1\\
+\hline
+\multicolumn{5}{|c|}{\textbf{VLAN 70 - Admin (Nativa)}} \\
+\hline
+R1 & 70 & 192.168.70.1 & 255.255.255.0 & -- \\
+PC-I & 70 & 192.168.70.10 & 255.255.255.0 & 192.168.70.1\\
+PC-J & 70 & 192.168.70.11 & 255.255.255.0 & 192.168.70.1\\
+\hline
+\end{tabular}
+\end{center}
+
+\section{Configuración del Router}
+EN la figura \ref{fig:ipInterfaceBriefR1} podemos observar la ejecución del comando \textit{show ip interface brief} en el router R1, en la que se nota la configuración 
+de las interfaces y sus respectivas VLAN aspi como su estado.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{ipInterfaceBriefR1.png}
+  \caption{Ejecución de comando show ip interface brief en router R1}\label{fig:ipInterfaceBriefR1}
+\end{figure}
+
+\section{Configuración de los Switchers}
+En las figuras \ref{fig:showVlanBriefS1}, \ref{fig:showVlanBriefS2}, \ref{fig:showVlanBriefS3} y \ref{fig:showVlanBriefS4} podemos observar la ejecución del 
+comando \textit{show vlan brief} en los switch 1 - 4 respectivamente, en las que se nota la configuración de las VLANs, su estado y el puerto físico al 
+que están asignadas.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{showVlanBriefS1.png}
+  \caption{Ejecución del comando show vlan brief en el switch S1}\label{fig:showVlanBriefS1}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{showVlanBriefS2.png}
+  \caption{Ejecución del comando show vlan brief en el switch S2}\label{fig:showVlanBriefS2}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{showVlanBriefS3.png}
+  \caption{Ejecución del comando show vlan brief en el switch S3}\label{fig:showVlanBriefS3}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{showVlanBriefS4.png}
+  \caption{Ejecución del comando show vlan brief en el switch S4}\label{fig:showVlanBriefS4}
+\end{figure}
+
+\section{Pruebas de conectividad}
+En la figura \ref{fig:pruebasConect} se pueden observar el registro de las 6 pruebas de conectividad realizadas entre diferetes dispositivos de la red, específicados 
+entre las columnas 3 y 4.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{pruebasConect.png}
+  \caption{Pruebas de conectividad entre diferentes dispositivos}\label{fig:pruebasConect}
+\end{figure}
+
+\section{Conclusión}
+Las VLAN permiten separar de forma lógica equipos dentro de una misma red física para simplificar la gestión de equipos con necesidades conjuntas.
+Mientras hacía la práctica, tuve un problema en el que, mientras las computadoras pertenecientes a la VLAN 40 (Admin) estaban bien configuradas, en sus 
+correspondientes interfaces en el switch configuré una VLAN diferente, por lo que todas las pruebas de conectividad que involucraran dichos host fallaban.
+
+Al consultar con el profesor, este realizó un debbugging interesante en el que encendió una configuración que mostraba a qué interfaz física estaba conectado cada 
+dispositivo de la red, y después comparo esa información con la configuración de vlans del switch, dándose cuenta de esta forma. Me llevo esta técnica para aplicarla después, 
+procurando por supuesto tener cuidado con la configuración inicial de la red.
+
+Finalmente, un descubrimiento para mí en la interfaz del simulador Cisco Packet Tracer es la de agilizar los \textit{ping}s entre dispositivos 
+utilizando el ícono de sobre para carta, lo que también permite visualizar en el modo simulador el viaje de dicho paquete de información.
+Debe decirse que este método puede regresar un \textit{failed} las primeras veces que se ejecuta, por lo que es recomendable probar cada conección al menos 5 veces.
+
+\end{document}
