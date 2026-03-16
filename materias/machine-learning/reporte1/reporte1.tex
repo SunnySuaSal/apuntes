@@ -1,0 +1,261 @@
+\documentclass[12pt]{article}
+
+\usepackage[a4paper, margin=1in]{geometry}
+\usepackage{setspace}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{natbib}
+\usepackage{titlesec}
+
+\setstretch{1.25}
+
+\title{\textbf{Machine Learning for Time Delay and Light Curve Analysis in Astroinformatics}}
+\author{Jorge Alberto Suárez Saldaña \\
+Machine Learning Course \\
+Advisor: Professor Cuevas Tello Juan Carlos}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\newpage
+
+\section{Introduction}
+
+Astroinformatics combines astronomy, statistics, and computer science to extract knowledge from large-scale astronomical datasets. One of the most important data structures in time-domain astronomy is the \textbf{light curve}, which represents the variation of a celestial object's brightness as a function of time.
+
+Light curves are essential for detecting and analyzing:
+\begin{itemize}
+    \item Exoplanet transits
+    \item Stellar rotation and variability
+    \item Supernovae
+    \item Gravitational lensing phenomena
+\end{itemize}
+
+Closely related is the concept of \textbf{time delay}, which refers to measurable shifts between light signals caused by gravitational lensing or geometric differences in light travel paths. Time-delay measurements are fundamental in cosmology and allow estimation of distances and even cosmological parameters.
+
+With modern telescopes such as \textit{Kepler}, \textit{TESS}, and the upcoming \textit{Vera Rubin Observatory (LSST)}, astronomy has entered a data-intensive era. Traditional analysis methods struggle to scale efficiently, creating a strong motivation for Machine Learning-based approaches.
+
+\section{Problem Definition and Motivation}
+
+The core problem addressed in this project is:
+
+\begin{quote}
+How can Machine Learning methods improve the detection, characterization, and time-delay estimation of astronomical events using light curve data?
+\end{quote}
+
+Light curves are typically irregularly sampled time-series data affected by:
+\begin{itemize}
+    \item Instrumental noise
+    \item Missing observations
+    \item Atmospheric interference
+    \item Earth's orbital motion (requiring Barycentric corrections)
+\end{itemize}
+
+Classical astronomy software relies heavily on:
+\begin{itemize}
+    \item Lomb-Scargle periodograms
+    \item Fourier transforms
+    \item Cross-correlation methods
+    \item Template fitting
+\end{itemize}
+
+However, these approaches:
+\begin{itemize}
+    \item Struggle with irregular sampling
+    \item Require manual parameter tuning
+    \item Become computationally expensive at large scale
+\end{itemize}
+
+Modern sky surveys generate terabytes of data per night. Human inspection is no longer feasible. Machine Learning offers pattern recognition capabilities that can automatically detect subtle variations across massive datasets.
+
+This motivates the application of AI methods to:
+\begin{itemize}
+    \item Detect periodic behavior
+    \item Estimate transit parameters
+    \item Measure gravitational lensing time delays
+    \item Classify variable astronomical sources
+\end{itemize}
+
+\section{State of the Art}
+
+\subsection{Classical Approaches}
+
+Traditional methods include:
+
+\begin{itemize}
+    \item Lomb-Scargle periodograms for irregular time-series
+    \item Cross-correlation for time-delay estimation
+    \item Bayesian model fitting
+    \item Template matching
+\end{itemize}
+
+These methods are mathematically well-founded but computationally intensive when applied to millions of light curves.
+
+\subsection{Machine Learning Approaches}
+
+Recent research shows strong adoption of ML methods:
+
+\begin{itemize}
+    \item Gradient Boosted Trees for photometric classification
+    \item Random Forests for transient detection
+    \item Convolutional Neural Networks (CNNs) for transit detection
+    \item Recurrent Neural Networks (RNNs, LSTM) for sequential modeling
+    \item Gaussian Processes (GPs) for uncertainty modeling
+\end{itemize}
+
+Deep learning allows:
+\begin{itemize}
+    \item Automatic feature extraction
+    \item Robust handling of noisy signals
+    \item Scalable classification of millions of sources
+\end{itemize}
+
+Recent works demonstrate that ML models achieve competitive or superior performance compared to classical methods, particularly when dealing with large and irregular datasets.
+
+\subsection{Contrast: Classical vs Machine Learning}
+
+\begin{center}
+\begin{tabular}{|p{3cm}|p{5cm}|p{5cm}|}
+\hline
+Aspect & Classical Methods & Machine Learning \\
+\hline
+Feature Design & Manual & Automatic / Learned \\
+\hline
+Scalability & Limited & Highly scalable \\
+\hline
+Irregular Data & Sensitive & Robust (especially RNN/GP models) \\
+\hline
+Interpretability & High & Moderate \\
+\hline
+Computation After Training & High per case & Fast inference \\
+\hline
+\end{tabular}
+\end{center}
+
+Machine Learning shifts the paradigm from model-fitting to data-driven pattern discovery.
+
+\section{Methodology}
+
+The proposed methodology consists of:
+
+\subsection{Data Preprocessing}
+\begin{itemize}
+    \item Convert timestamps to Barycentric Julian Date
+    \item Normalize flux values
+    \item Remove outliers
+    \item Handle missing data
+\end{itemize}
+
+\subsection{Feature-Based Approach}
+\begin{itemize}
+    \item Statistical descriptors (mean, variance, skewness)
+    \item Periodogram peak extraction
+    \item Transit depth and duration estimation
+\end{itemize}
+
+Apply:
+\begin{itemize}
+    \item Random Forest
+    \item XGBoost
+    \item Support Vector Machines
+\end{itemize}
+
+\subsection{Deep Learning Approach}
+\begin{itemize}
+    \item 1D Convolutional Neural Networks
+    \item LSTM / GRU models
+    \item Transformer-based time-series models
+\end{itemize}
+
+\subsection{Gaussian Process Modeling}
+Use scalable GP variants for:
+\begin{itemize}
+    \item Gap filling
+    \item Uncertainty estimation
+    \item Forecasting
+\end{itemize}
+
+\subsection{Evaluation Metrics}
+\begin{itemize}
+    \item Accuracy
+    \item Precision/Recall
+    \item Log-loss
+    \item RMSE for regression tasks
+\end{itemize}
+
+Comparison will be made against classical baselines.
+
+\section{Datasets}
+
+\subsection{Public Datasets}
+
+\begin{itemize}
+    \item Kepler Mission light curves
+    \item TESS photometric data
+    \item LSST / PLAsTiCC simulated dataset
+\end{itemize}
+
+Typical structure:
+
+\begin{itemize}
+    \item Time (Julian Date)
+    \item Flux (brightness)
+    \item Flux error
+    \item Object metadata (RA, DEC, redshift, etc.)
+\end{itemize}
+
+\subsection{Local Observatory Data}
+
+If available, the university observatory dataset may include:
+
+\begin{itemize}
+    \item Time-stamped photometric measurements
+    \item Telescope metadata
+    \item Observational conditions
+\end{itemize}
+
+The pipeline will be designed to flexibly ingest FITS or CSV formatted light curves.
+
+\section{Modern Digital Tools}
+
+Modern astroinformatics workflows use:
+
+\begin{itemize}
+    \item Python ecosystem (Astropy, Lightkurve, AstroML)
+    \item Scikit-learn
+    \item TensorFlow / PyTorch
+    \item Gaussian Process libraries
+    \item Fedora Astronomy Spin (pre-configured astronomy software distribution)
+\end{itemize}
+
+These tools integrate classical astronomy processing with ML experimentation environments.
+
+\section{Conclusion}
+
+The transition from classical astronomical signal-processing to Machine Learning represents a paradigm shift in astroinformatics.
+
+While classical methods remain foundational, Machine Learning enables:
+
+\begin{itemize}
+    \item Scalable processing of massive surveys
+    \item Robust pattern recognition in noisy data
+    \item Automated feature extraction
+    \item Faster inference after training
+\end{itemize}
+
+Given the exponential growth of astronomical data, ML is not merely an enhancement—it is becoming a necessity for modern time-domain astronomy.
+
+\newpage
+\section{References}
+
+\begin{enumerate}
+\item Gabruseva et al. (2019). Photometric light curves classification with machine learning.
+\item Jiménez-Vicente et al. (2025). Analysing quasar microlensing light curves with machine learning.
+\item LSST DESC (2018). Photometric LSST Astronomical Time-Series Classification Challenge.
+\item Priest et al. (2024). Machine learning tool fills in satellite light curves.
+\item Eastman (2010). Barycentric Julian Date correction explanation.
+\end{enumerate}
+
+\end{document}
