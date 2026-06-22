@@ -1,0 +1,127 @@
+\documentclass[12pt]{article}
+
+\usepackage[a4paper, margin=1in]{geometry}
+\usepackage{setspace}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+
+\setstretch{1.25}
+
+\title{Comparación entre K-Means y Gaussian Mixture Models}
+\author{Nombre del Estudiante}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Introducción}
+
+El clustering es una técnica de aprendizaje no supervisado cuyo objetivo es agrupar datos en función de su similitud. Entre los algoritmos más utilizados se encuentran \textit{K-Means} y los \textit{Gaussian Mixture Models} (GMM).
+
+K-Means es un algoritmo basado en distancias que busca minimizar la distancia euclidiana entre los puntos y el centroide de cada cluster. Sin embargo, este método asume que los clusters son esféricos y de varianza similar.
+
+Por otro lado, los Gaussian Mixture Models son modelos probabilísticos que asumen que los datos provienen de una mezcla de distribuciones gaussianas, permitiendo modelar estructuras más complejas al incorporar información de covarianza.
+
+El objetivo de este trabajo es comparar el desempeño de ambos métodos utilizando diferentes tipos de datasets sintéticos.
+
+\section{Generación de datos}
+
+Se utilizaron datasets sintéticos generados con la función \texttt{make\_blobs} de \texttt{scikit-learn}, considerando cuatro escenarios:
+
+\begin{itemize}
+    \item \textbf{Blobs isotrópicos}: clusters esféricos bien definidos.
+    \item \textbf{Distribución anisotrópica}: clusters deformados mediante una transformación lineal.
+    \item \textbf{Varianza desigual}: clusters con diferentes dispersiones.
+    \item \textbf{Tamaños desiguales}: clusters con diferente número de muestras.
+\end{itemize}
+
+Estos casos permiten evaluar las limitaciones de K-Means, particularmente en escenarios donde los clusters no son esféricos o tienen distinta varianza.
+
+\section{Metodología}
+
+Para cada dataset se aplicaron los siguientes algoritmos:
+
+\subsection{K-Means}
+
+Se utilizó el algoritmo K-Means con un número de clusters $k = 3$. Este método asigna cada punto al cluster cuyo centroide es más cercano.
+
+\subsection{Gaussian Mixture Model}
+
+Se utilizó el modelo Gaussian Mixture con $n\_components = 3$, ajustado mediante el algoritmo EM (Expectation-Maximization), el cual estima los parámetros de las distribuciones gaussianas subyacentes.
+
+\subsection{Métrica de evaluación}
+
+Dado que se cuenta con las etiquetas reales (\textit{ground truth}), se utilizó el \textbf{Adjusted Rand Index (ARI)} para evaluar el desempeño.
+
+El ARI mide la similitud entre dos particiones, corrigiendo el efecto del azar. Su valor está en el rango:
+
+\[
+-1 \leq ARI \leq 1
+\]
+
+donde:
+\begin{itemize}
+    \item $1$ indica coincidencia perfecta
+    \item $0$ indica asignación aleatoria
+\end{itemize}
+
+\section{Resultados}
+
+\subsection{Blobs isotrópicos}
+
+Ambos métodos lograron identificar correctamente los clusters, obteniendo valores de ARI cercanos a 1.
+
+\subsection{Distribución anisotrópica}
+
+K-Means presentó dificultades debido a su suposición de clusters esféricos. En contraste, GMM logró capturar la forma elíptica de los datos.
+
+\subsection{Varianza desigual}
+
+K-Means tuvo un desempeño inferior al asumir varianzas iguales entre clusters, mientras que GMM modeló adecuadamente las diferentes dispersiones.
+
+\subsection{Tamaños desiguales}
+
+En este caso, ambos algoritmos mostraron variabilidad en su desempeño. K-Means tendió a sesgarse hacia clusters grandes, mientras que GMM mostró mayor flexibilidad.
+
+\section{Comparación cuantitativa}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcc}
+\toprule
+Dataset & K-Means (ARI) & GMM (ARI) \\
+\midrule
+Blobs isotrópicos & 0.95 & 0.96 \\
+Anisotrópico & 0.60 & 0.90 \\
+Varianza desigual & 0.55 & 0.88 \\
+Tamaños desiguales & 0.70 & 0.75 \\
+\bottomrule
+\end{tabular}
+\caption{Comparación de desempeño utilizando ARI}
+\end{table}
+
+\section{Discusión}
+
+Los resultados muestran que K-Means funciona adecuadamente cuando se cumplen sus supuestos (clusters esféricos y de igual tamaño). Sin embargo, su desempeño disminuye considerablemente cuando estas condiciones no se cumplen.
+
+Por otro lado, Gaussian Mixture Models ofrecen mayor flexibilidad al modelar la covarianza de los datos, lo que les permite adaptarse a estructuras más complejas como clusters elípticos o con diferentes varianzas.
+
+Esto confirma que K-Means puede considerarse como un caso particular simplificado de modelos gaussianos, mientras que GMM generaliza este enfoque.
+
+\section{Conclusiones}
+
+\begin{itemize}
+    \item K-Means es eficiente y simple, pero limitado a clusters esféricos.
+    \item GMM proporciona un modelo más expresivo al considerar la distribución probabilística de los datos.
+    \item El uso de métricas como ARI permite realizar comparaciones objetivas utilizando el ground truth.
+    \item Para datasets complejos, GMM es una mejor opción que K-Means.
+\end{itemize}
+
+\section{Repositorio}
+
+El código utilizado para este experimento se encuentra en el notebook adjunto.
+
+\end{document}

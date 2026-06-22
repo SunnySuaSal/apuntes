@@ -1,0 +1,119 @@
+\documentclass[12pt]{article}
+
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\title{Cálculo de la cantidad óptima de hielo para enfriar un volúmen de agua}
+\author{Jorge Alberto Suárez Saldaña}
+\date{\today}
+
+\begin{document}
+\maketitle
+\section{Introducción}
+Tenemos un problema interesante: En Marte Boba Shop tenemos un dispensador de agua con capacidad de 10 litros que está
+pensado para mantener dicha agua fría.
+En una ocación, mientras rellenaba dicho dispensador con hielos, me pregunté: 
+Si le agrego un cubo de hielo al dispensador con agua, el hielo se derretirá, disminuyendo la temperatura del agua en cierta cantidad.
+Si le agrego dos hielos, al derretirse, la temperatura final del agua será aún menor.
+Lo que por inducción, te hace pensar que debe haber una cantidad óptima de hielo que permite enfriar a su temperatura mínima el agua.
+Es decir, que apartir de dicha cantidad de hielo agregado, el agua no se enfriará más.
+\section{Dessarrollo}
+Definamos primero las cantidades reelevantes para este problema:
+\begin{itemize}
+  \item Masa de agua $m_a$ en kilogramos
+  \item Temperatura inicial del agua $T_a$ en grados centígrados
+  \item Masa total del hielo $m_h$ en kilogramos
+  \item Temperatura inicial del hielo: $0^\circ C$ (para simplificar)
+\end{itemize}
+El calor $Q$ que puede \underline{ceder} el agua al enfriarse hasta una temperatura final $T_f$ es:
+\begin{equation}
+  Q_{agua} = m_a c (T_a - T_f)
+  \label{eq:calorEspecifico}
+\end{equation}
+donde $c \approx 4186\ \mathrm{J/(kg\cdot^\circ C)}$ es el calor específico del agua.
+
+El calor que necesita el hielo para derretirse es 
+\begin{equation}
+  Q_{fusion} = m_h \cdot L_f
+  \label{eq:calorLatente}
+\end{equation}
+donde $L_f \approx 334000\ \mathrm{J/kg}$ es la constante de fusión del agua.
+
+y si el hielo derretido termina a temperatura $T_f$
+\begin{equation}
+  Q_{hielo} = m_h L_f + m_h\cdot c \cdot T_f
+  \label{eq:calorFinalHielo}
+\end{equation}
+nótese que el primer término de la suma de la equación \eqref{eq:calorFinalHielo} es la ecuación \eqref{eq:calorLatente} es decir, el calor necesario
+para derretir el hielo y el segundo término es la ecuación \eqref{eq:calorEspecifico} es decir, el calor necesario para calentar dicha agua una vez derretida.
+
+El equilibrio térmico dentro del sistema del dispensador de agua con hielos se alcanza cuando
+\begin{equation}
+  m_a \cdot c \cdot (T_a - T_f) = m_h L_f + m_h \cdot c \cdot T_f
+  \label{eq:equilibioTermico}
+\end{equation}
+
+Donde el término a la izquierda de la igualdad representa el calor que cede el agua al enfriarse y se transfiere al lado derecho de la igualdad que representa 
+el calor que gana el hielo al calentarse.
+
+De la ecuación \eqref{eq:equilibioTermico} puede despejarse la temperatura final del agua $T_f$ para cualquier 
+cantidad de agua y masa de hielo.
+
+Por conservación de la energía, no podemos enfriar a menos de $0^\circ C$ agua líquida a presión atmosférica normal usando únicamente hielo.
+Por lo que asumiremos que la temperatura mínima alcanzable por el sistema es 
+\[ T_f = 0^\circ C \]
+
+\section{Solución}
+Ahora, finalmente, podemos plantear y resolver nuestra pregunta principal:
+Calcular cuánta masa de hielo se necesita para llevar una masa de agua a exactamente $0^\circ C$
+
+El agua libera 
+\begin{equation}
+  Q = m_a \cdot c \cdot T_a
+  \label{eq:calorAgua}
+\end{equation}
+Ese calor se usa únicamente para fundir el hielo
+\begin{align}
+  Q &= m_h \cdot L_f \\
+  m_h &= \frac{Q}{L_f} \\
+  m_h &= \frac{m_a \cdot c \cdot T_a}{L_f}
+  \label{eq:fundicionHielo}
+\end{align}
+Sabemos que la temperatura del agua potable en Marte, al salir del grifo, es de $20^\circ C$ y que el dispensador
+donde se almacena tiene una capacidad de 10 litros.
+Sabemos también que 10 litros de agua son equivalentes a 10 kilogramos de agua.
+Evaluamos entonces nuestra ecuación:
+
+\begin{equation}
+\begin{aligned}
+m_h &=
+\frac{
+(10\,\mathrm{kg})
+(4186\,\mathrm{J/(kg\cdot ^\circ C)})
+(20\,^\circ\mathrm{C})
+}{
+334000\,\mathrm{J/kg}
+} \\
+&\approx 2.5\,\mathrm{kg}
+\end{aligned}
+\label{eq:calculoMasaHielo}
+\end{equation}
+Entonces, para enfriar 10 litros de agua a temperatura ambiente en un dispensador con aislamiento térmico a la temperatura mínima
+alcanzable, se necesitan 2.5 kilogramos de hielo.
+
+No utilizamos la ley de enfriamiento de Newton ni ninguna otra ecuación diferencial porque para 
+este problema sólo nos interesa la temperatura final de equilibrio, no el comportamiento
+del sistema en función del tiempo.
+
+\begin{thebibliography}{9}
+
+\bibitem{tippens}
+Tippens, Paul E.
+\textit{Física: conceptos y aplicaciones}.
+Séptima edición revisada.
+McGraw-Hill, 2001.
+pp.~354--355.
+
+\end{thebibliography}
+\end{document}
