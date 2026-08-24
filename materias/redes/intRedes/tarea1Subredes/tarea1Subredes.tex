@@ -1,0 +1,288 @@
+\documentclass[12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath, amssymb, amsfonts, cancel}
+\usepackage{graphicx}
+\usepackage[letterpaper, left=1in, right=1in, top=1in, bottom=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{colortbl}
+\usepackage{xcolor}
+\definecolor{paleYellow}{RGB}{255,255,180}
+\usepackage{physics}
+\usepackage{hyperref}
+\usepackage[spanish]{babel}
+
+\usepackage{tikz}
+
+\usetikzlibrary{
+    positioning,
+    shapes.geometric,
+    arrows.meta
+}
+
+\title{
+Tarea 1: Subredes IPv4\\[0.5em]
+\large Interacción de redes
+}
+
+\author{
+Jorge Alberto Suarez Saldana\\
+\small Matrícula: 355992\\
+\small Profesor: Raymundo Antonio González Grimaldo
+}
+
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Topología}
+
+\begin{figure}[ht]
+    \centering
+
+    \begin{tikzpicture}[
+        router/.style={
+            draw,
+            thick,
+            rounded corners,
+            minimum width=1.5cm,
+            minimum height=0.8cm,
+            fill=gray!15
+        },
+        switch/.style={
+            draw,
+            thick,
+            rectangle,
+            minimum width=1.4cm,
+            minimum height=0.7cm,
+            fill=blue!10
+        },
+        server/.style={
+            draw,
+            thick,
+            rectangle,
+            minimum width=1.5cm,
+            minimum height=0.7cm,
+            fill=green!10
+        },
+        pc/.style={
+            draw,
+            thick,
+            rectangle,
+            minimum width=1.2cm,
+            minimum height=0.7cm,
+            fill=orange!10
+        },
+        subnet/.style={
+            midway,
+            fill=white,
+            inner sep=2pt,
+            font=\small
+        },
+        link/.style={
+            thick
+        }
+    ]
+
+    % =========================================================
+    % ROUTERS
+    % =========================================================
+
+    \node[router] (R1) at (0,4) {R1};
+    \node[router] (R2) at (6,4) {R2};
+    \node[router] (R3) at (3,0) {R3};
+
+    % =========================================================
+    % ENLACES ENTRE ROUTERS
+    % =========================================================
+
+    % Subred 4
+    \draw[link]
+        (R1) -- node[subnet, above] {Subred 4}
+        (R2);
+
+    % Subred 5
+    \draw[link]
+        (R1) -- node[subnet, left] {Subred 5}
+        (R3);
+
+    % Subred 6
+    \draw[link]
+        (R2) -- node[subnet, right] {Subred 6}
+        (R3);
+
+    % =========================================================
+    % SUBRED 1
+    % =========================================================
+
+    \node[switch] (S1) at (-3,4) {S1};
+
+    \draw[link]
+        (R1) -- node[subnet, above] {Subred 1}
+        (S1);
+
+    \node[server] (Serv1) at (-4.5,2.3) {Serv1};
+    \node[server] (Serv2) at (-1.5,2.3) {Serv2};
+
+    \draw[link] (S1) -- (Serv1);
+    \draw[link] (S1) -- (Serv2);
+
+    % =========================================================
+    % SUBRED 2
+    % =========================================================
+
+    \node[switch] (S2) at (3,-2) {S2};
+
+    \draw[link]
+        (R3) -- node[subnet, right] {Subred 2}
+        (S2);
+
+    \node[pc] (PCA) at (1,-4) {PCA};
+
+    \node[switch] (S3) at (5,-4) {S3};
+
+    \draw[link] (S2) -- (PCA);
+    \draw[link] (S2) -- (S3);
+
+    \node[pc] (PCB) at (5,-6) {PCB};
+
+    \draw[link] (S3) -- (PCB);
+
+    % =========================================================
+    % SUBRED 3
+    % =========================================================
+
+    \node[switch] (S4) at (9,4) {S4};
+
+    \draw[link]
+        (R2) -- node[subnet, above] {Subred 3}
+        (S4);
+
+    \node[server] (Serv3) at (9,2) {Serv3};
+
+    \draw[link] (S4) -- (Serv3);
+
+    \end{tikzpicture}
+
+    \caption{Topología de la red y distribución de las subredes.}
+    \label{fig:topologia-red}
+
+\end{figure}
+
+La red principal es:
+
+\[
+140.200.128.0/18
+\]
+
+Se requieren al menos \(8=2^3\) subredes, por lo que se toman 3 bits de la parte de hosts:
+
+\[
+/18+3=/21
+\]
+
+La nueva máscara es:
+
+\[
+255.255.248.0
+\]
+
+Cada subred contiene:
+
+\[
+2^{32-21}=2^{11}=2048
+\]
+
+direcciones totales, de las cuales 2046 son utilizables para hosts:
+
+\[
+2^{11}-2=2046
+\]
+
+\subsection{Subredes obtenidas}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{c|c|c|c|c}
+\textbf{Subred} & \textbf{ID de red} & \textbf{1er host} &
+\textbf{Último host} & \textbf{Broadcast}\\
+\hline
+1 & 140.200.128.0 & 140.200.128.1 & 140.200.135.254 & 140.200.135.255\\
+2 & 140.200.136.0 & 140.200.136.1 & 140.200.143.254 & 140.200.143.255\\
+3 & 140.200.144.0 & 140.200.144.1 & 140.200.151.254 & 140.200.151.255\\
+4 & 140.200.152.0 & 140.200.152.1 & 140.200.159.254 & 140.200.159.255\\
+5 & 140.200.160.0 & 140.200.160.1 & 140.200.167.254 & 140.200.167.255\\
+6 & 140.200.168.0 & 140.200.168.1 & 140.200.175.254 & 140.200.175.255\\
+7 & 140.200.176.0 & 140.200.176.1 & 140.200.183.254 & 140.200.183.255\\
+8 & 140.200.184.0 & 140.200.184.1 & 140.200.191.254 & 140.200.191.255
+\end{tabular}
+\caption{División de la red principal en 8 subredes /21.}
+\end{table}
+
+\subsection{Asignación de subredes a la topología}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{c|l}
+\textbf{Subred} & \textbf{Segmento}\\
+\hline
+1 & R1 -- S1 -- Serv1, Serv2\\
+2 & R3 -- S2 -- PCA -- S3 -- PCB\\
+3 & R2 -- S4 -- Serv3\\
+4 & R1 -- R2\\
+5 & R3 -- R1\\
+6 & R2 -- R3\\
+7 & Disponible\\
+8 & Disponible
+\end{tabular}
+\caption{Asignación de las subredes a la topología.}
+\end{table}
+
+\subsection{Tabla de direccionamiento}
+
+Se utiliza la primera dirección válida de cada LAN como puerta de enlace.
+En los enlaces entre routers se utilizan las dos primeras direcciones válidas.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{l|l|l|c|l}
+\textbf{Dispositivo} & \textbf{Interfaz} & \textbf{IP} &
+\textbf{Máscara/Prefijo} & \textbf{Gateway}\\
+\hline
+R1 & LAN (Subred 1) & 140.200.128.1 & 255.255.248.0 /21 & --\\
+Serv1 & NIC & 140.200.128.2 & 255.255.248.0 /21 & 140.200.128.1\\
+Serv2 & NIC & 140.200.128.3 & 255.255.248.0 /21 & 140.200.128.1\\
+\hline
+R3 & LAN (Subred 2) & 140.200.136.1 & 255.255.248.0 /21 & --\\
+PCA & NIC & 140.200.136.2 & 255.255.248.0 /21 & 140.200.136.1\\
+PCB & NIC & 140.200.136.3 & 255.255.248.0 /21 & 140.200.136.1\\
+\hline
+R2 & LAN (Subred 3) & 140.200.144.1 & 255.255.248.0 /21 & --\\
+Serv3 & NIC & 140.200.144.2 & 255.255.248.0 /21 & 140.200.144.1\\
+\hline
+R1 & R1--R2 (Subred 4) & 140.200.152.1 & 255.255.248.0 /21 & --\\
+R2 & R2--R1 (Subred 4) & 140.200.152.2 & 255.255.248.0 /21 & --\\
+\hline
+R3 & R3--R1 (Subred 5) & 140.200.160.1 & 255.255.248.0 /21 & --\\
+R1 & R1--R3 (Subred 5) & 140.200.160.2 & 255.255.248.0 /21 & --\\
+\hline
+R2 & R2--R3 (Subred 6) & 140.200.168.1 & 255.255.248.0 /21 & --\\
+R3 & R3--R2 (Subred 6) & 140.200.168.2 & 255.255.248.0 /21 & --
+\end{tabular}
+\caption{Tabla de direccionamiento IP.}
+\end{table}
+
+Los switches S1, S2, S3 y S4 son dispositivos de capa 2, por lo que no
+necesitan una dirección IP para realizar su función de conmutación. Si se
+requiere administración remota de los switches, se puede asignar una
+dirección IP a una interfaz VLAN de administración dentro de la subred
+correspondiente.
+
+Las subredes 7 y 8 quedan reservadas para futuras ampliaciones de la red.
+
+\end{document}
