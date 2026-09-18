@@ -1,0 +1,647 @@
+\documentclass[12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath, amssymb, amsfonts, cancel}
+\usepackage{graphicx}
+\usepackage[letterpaper, left=1in, right=1in, top=1in, bottom=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{colortbl}
+\usepackage{xcolor}
+\definecolor{paleYellow}{RGB}{255,255,180}
+\usepackage{physics}
+\usepackage{hyperref}
+\usepackage[spanish]{babel}
+
+\title{
+Práctica 1: Evaluación Integral de Diseño de una Red Segmentada\\[0.5em]
+\large Interacción de redes
+}
+
+\author{
+Jorge Alberto Suarez Saldana\\
+\small Matrícula: 355992\\
+\small Profesor: Raymundo Antonio González Grimaldo
+}
+
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Topología de la red}
+
+Podemos observar en la Figura \ref{fig:topologia} un diagrama de la topología
+de la red implementada en el simulador Cisco Packet Tracer. La topología está
+compuesta por tres routers, tres switches, diferentes hosts y
+un servidor.
+
+Los routers R1, R2 y R3 se encuentran conectados mediante enlaces seriales,
+mientras que los switches permiten conectar los dispositivos finales
+correspondientes a las diferentes VLAN de la red. Para permitir la comunicación
+entre las distintas VLAN se utilizó el método de \textit{router-on-a-stick},
+mediante subinterfaces en los routers R2 y R3.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{topologia.png}
+  \caption{Topología de la red}
+  \label{fig:topologia}
+\end{figure}
+
+
+\section{Tabla de direccionamiento}
+
+La red fue dividida en diferentes subredes de acuerdo con la función de cada
+segmento de la topología. Para las conexiones entre routers se utilizaron
+redes con prefijo /30, mientras que para las redes LAN y las VLAN se utilizaron
+subredes /24.
+
+\bigskip
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+\textbf{Dispositivo} & \textbf{VLAN} & \textbf{IP} &
+\textbf{Máscara de red} & \textbf{Gateway} \\
+\hline
+
+\multicolumn{5}{|c|}{\textbf{Red entre R1 y R2}} \\
+\hline
+R1 & -- & 10.10.10.1 & 255.255.255.252 & -- \\
+R2 & -- & 10.10.10.2 & 255.255.255.252 & -- \\
+\hline
+
+\multicolumn{5}{|c|}{\textbf{Red PC-A}} \\
+\hline
+R1 & -- & 148.120.1.1 & 255.255.255.0 & -- \\
+PC-A & -- & 148.120.1.10 & 255.255.255.0 & 148.120.1.1 \\
+\hline
+
+\multicolumn{5}{|c|}{\textbf{Red PC-B}} \\
+\hline
+R2 & -- & 148.120.2.1 & 255.255.255.0 & -- \\
+PC-B & -- & 148.120.2.10 & 255.255.255.0 & 148.120.2.1 \\
+\hline
+
+\multicolumn{5}{|c|}{\textbf{Enlace entre R2 y R3}} \\
+\hline
+R2 & -- & 10.10.20.1 & 255.255.255.252 & -- \\
+R3 & -- & 10.10.20.2 & 255.255.255.252 & -- \\
+\hline
+
+\multicolumn{5}{|c|}{\textbf{VLAN 20 - Nativa}} \\
+\hline
+R2 & 20 & 192.168.20.1 & 255.255.255.0 & -- \\
+S1 & 20 & 192.168.20.2 & 255.255.255.0 & 192.168.20.1 \\
+S2 & 20 & 192.168.20.3 & 255.255.255.0 & 192.168.20.1 \\
+\hline
+
+\multicolumn{5}{|c|}{\textbf{VLAN 25 - Coordinadores}} \\
+\hline
+R2 & 25 & 192.168.25.1 & 255.255.255.0 & -- \\
+PC-D & 25 & 192.168.25.10 & 255.255.255.0 & 192.168.25.1 \\
+LAPTOP-B & 25 & 192.168.25.11 & 255.255.255.0 & 192.168.25.1 \\
+\hline
+
+\multicolumn{5}{|c|}{\textbf{VLAN 30 - Profesores}} \\
+\hline
+R2 & 30 & 192.168.30.1 & 255.255.255.0 & -- \\
+LAPTOP-A & 30 & 192.168.30.10 & 255.255.255.0 & 192.168.30.1 \\
+PC-C & 30 & 192.168.30.11 & 255.255.255.0 & 192.168.30.1 \\
+\hline
+
+\multicolumn{5}{|c|}{\textbf{VLAN 10 - Becarios}} \\
+\hline
+R3 & 10 & 172.16.10.1 & 255.255.255.0 & -- \\
+PC-E & 10 & 172.16.10.10 & 255.255.255.0 & 172.16.10.1 \\
+\hline
+
+\multicolumn{5}{|c|}{\textbf{VLAN 20 - Nativa en S3}} \\
+\hline
+R3 & 20 & 172.16.20.1 & 255.255.255.0 & -- \\
+S3 & 20 & 172.16.20.2 & 255.255.255.0 & 172.16.20.1 \\
+\hline
+
+\multicolumn{5}{|c|}{\textbf{Red del servidor}} \\
+\hline
+R3 & -- & 202.20.3.1 & 255.255.255.0 & -- \\
+Server & -- & 202.20.3.10 & 255.255.255.0 & 202.20.3.1 \\
+\hline
+
+\end{tabular}
+\end{center}
+
+
+\section{Configuración de VLANs}
+
+En los switches S1 y S2 se configuraron tres VLANs: la VLAN 20, utilizada
+como VLAN nativa y de administración; la VLAN 25, correspondiente a los
+Coordinadores; y la VLAN 30, correspondiente a los Profesores.
+
+Por otro lado, en el switch S3 se configuraron la VLAN 20 como VLAN nativa y
+la VLAN 10 para los Becarios.
+
+Los puertos que conectan dispositivos finales fueron configurados como
+puertos de acceso pertenecientes a la VLAN correspondiente, mientras que los
+enlaces entre switches y routers fueron configurados como enlaces troncales
+(\textit{trunk}).
+
+Además, se implementó seguridad de puertos en los puertos de acceso mediante
+\textit{port-security}, limitando a un dispositivo la cantidad máxima de
+direcciones MAC permitidas.
+
+
+\section{Configuración de los routers}
+
+Para permitir la comunicación entre las diferentes VLANs se utilizó la
+configuración conocida como \textit{router-on-a-stick}. Este método consiste
+en utilizar una sola interfaz física del router y dividirla lógicamente
+mediante diferentes subinterfaces, asignando a cada una una VLAN mediante
+encapsulación IEEE 802.1Q.
+
+En R2 se utilizaron las subinterfaces correspondientes a las VLAN 20, 25 y
+30. La VLAN 20 fue configurada como VLAN nativa.
+
+De manera similar, en R3 se utilizaron las subinterfaces correspondientes a
+las VLAN 20 y 10, utilizando nuevamente la VLAN 20 como VLAN nativa.
+
+Los enlaces seriales entre los routers fueron configurados utilizando las
+redes 10.10.10.0/30 y 10.10.20.0/30. En el extremo DCE de cada enlace se
+configuró una velocidad de reloj de 64000 bits por segundo mediante el
+comando \textit{clock rate}.
+
+
+\section{Enrutamiento estático}
+
+Para permitir la comunicación entre todas las redes de la topología se
+configuraron rutas estáticas en los tres routers.
+
+R1 utiliza a R2 como siguiente salto para alcanzar las redes que se encuentran
+detrás de este router. De manera similar, R2 utiliza a R3 como siguiente salto
+para las redes ubicadas en el extremo derecho de la topología.
+
+Finalmente, R3 utiliza a R2 como siguiente salto para alcanzar las redes
+ubicadas detrás de R1 y las VLAN configuradas en R2.
+
+Esta configuración permite que un paquete enviado desde una red pueda
+atravesar los diferentes routers hasta llegar a la red destino.
+
+
+\section{Configuración actual de S1}
+
+Para comprobar la configuración activa del switch S1 se utilizó el comando
+\textit{show running-config}. A continuación se deja el espacio para colocar
+la salida obtenida directamente desde Cisco Packet Tracer.
+
+\begin{verbatim}
+
+S1#show running-config
+Building configuration...
+
+Current configuration : 1592 bytes
+!
+version 15.0
+no service timestamps log datetime msec
+no service timestamps debug datetime msec
+service password-encryption
+!
+hostname S1
+!
+enable secret 5 $1$mERr$9cTjUIEqNGurQiFU.ZeCi1
+!
+!
+!
+no ip domain-lookup
+!
+!
+!
+spanning-tree mode pvst
+spanning-tree extend system-id
+!
+interface FastEthernet0/1
+!
+interface FastEthernet0/2
+!
+interface FastEthernet0/3
+!
+interface FastEthernet0/4
+!
+interface FastEthernet0/5
+ switchport trunk native vlan 20
+ switchport mode trunk
+!
+interface FastEthernet0/6
+ switchport access vlan 30
+ switchport mode access
+ switchport port-security
+!
+interface FastEthernet0/7
+ switchport access vlan 25
+ switchport mode access
+ switchport port-security
+!
+interface FastEthernet0/8
+!
+interface FastEthernet0/9
+!
+interface FastEthernet0/10
+!
+interface FastEthernet0/11
+!
+interface FastEthernet0/12
+!
+interface FastEthernet0/13
+!
+interface FastEthernet0/14
+!
+interface FastEthernet0/15
+!
+interface FastEthernet0/16
+!
+interface FastEthernet0/17
+!
+interface FastEthernet0/18
+!
+interface FastEthernet0/19
+!
+interface FastEthernet0/20
+!
+interface FastEthernet0/21
+!
+interface FastEthernet0/22
+!
+interface FastEthernet0/23
+!
+interface FastEthernet0/24
+!
+interface GigabitEthernet0/1
+ switchport trunk native vlan 20
+ switchport mode trunk
+!
+interface GigabitEthernet0/2
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+interface Vlan20
+ ip address 192.168.20.2 255.255.255.0
+!
+ip default-gateway 192.168.20.1
+!
+banner motd ^CACCESO RESTRINGIDO - SOLO PERSONAL AUTORIZADO^C
+!
+!
+!
+line con 0
+ password 7 0822455D0A16
+ login
+!
+line vty 0 4
+ login
+line vty 5 15
+ login
+!
+!
+!
+!
+end
+
+
+S1#
+\end{verbatim}
+
+
+\section{Configuración actual de R2}
+
+De igual manera, se verificó la configuración activa del router R2 mediante
+el comando \textit{show running-config}. Esta configuración permite comprobar
+las interfaces, subinterfaces, VLANs, direccionamiento y demás parámetros
+establecidos durante la práctica.
+
+\begin{verbatim}
+R2#show running-config
+Building configuration...
+
+Current configuration : 1620 bytes
+!
+version 15.1
+no service timestamps log datetime msec
+no service timestamps debug datetime msec
+service password-encryption
+!
+hostname R2
+!
+!
+!
+enable secret 5 $1$mERr$9cTjUIEqNGurQiFU.ZeCi1
+!
+!
+!
+!
+!
+!
+no ip cef
+no ipv6 cef
+!
+!
+!
+!
+license udi pid CISCO2911/K9 sn FTX15246G8Z-
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+no ip domain-lookup
+!
+!
+spanning-tree mode pvst
+!
+!
+!
+!
+!
+!
+interface GigabitEthernet0/0
+ ip address 148.120.2.1 255.255.255.0
+ duplex auto
+ speed auto
+!
+interface GigabitEthernet0/1
+ no ip address
+ duplex auto
+ speed auto
+!
+interface GigabitEthernet0/1.20
+ encapsulation dot1Q 20 native
+ ip address 192.168.20.1 255.255.255.0
+!
+interface GigabitEthernet0/1.25
+ encapsulation dot1Q 25
+ ip address 192.168.25.1 255.255.255.0
+!
+interface GigabitEthernet0/1.30
+ encapsulation dot1Q 30
+ ip address 192.168.30.1 255.255.255.0
+!
+interface GigabitEthernet0/2
+ no ip address
+ duplex auto
+ speed auto
+ shutdown
+!
+interface Serial0/0/0
+ no ip address
+ clock rate 2000000
+ shutdown
+!
+interface Serial0/0/1
+ no ip address
+ clock rate 2000000
+ shutdown
+!
+interface Serial0/1/0
+ ip address 10.10.10.2 255.255.255.252
+!
+interface Serial0/1/1
+ ip address 10.10.20.1 255.255.255.252
+ clock rate 64000
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+ip classless
+ip route 148.120.1.0 255.255.255.0 10.10.10.1 
+ip route 172.16.10.0 255.255.255.0 10.10.20.2 
+ip route 172.16.20.0 255.255.255.0 10.10.20.2 
+ip route 202.20.3.0 255.255.255.0 10.10.20.2 
+!
+ip flow-export version 9
+!
+!
+!
+banner motd ^CACCESO RESTRINGIDO - SOLO PERSONAL AUTORIZADO^C
+!
+!
+!
+!
+line con 0
+ password 7 0822455D0A16
+ login
+!
+line aux 0
+!
+line vty 0 4
+ login
+!
+!
+!
+end
+
+
+R2#
+\end{verbatim}
+
+
+\section{Tabla de enrutamiento de R1}
+
+Para comprobar las rutas conocidas por R1 se utilizó el comando
+\textit{show ip route}. La tabla permite observar tanto las redes directamente
+conectadas como las rutas estáticas configuradas para alcanzar las redes
+remotas.
+
+\begin{verbatim}
+R1#show ip route
+Codes: L - local, C - connected, S - static, R - RIP, M - mobile, B - BGP
+       D - EIGRP, EX - EIGRP external, O - OSPF, IA - OSPF inter area
+       N1 - OSPF NSSA external type 1, N2 - OSPF NSSA external type 2
+       E1 - OSPF external type 1, E2 - OSPF external type 2, E - EGP
+       i - IS-IS, L1 - IS-IS level-1, L2 - IS-IS level-2, ia - IS-IS inter area
+       * - candidate default, U - per-user static route, o - ODR
+       P - periodic downloaded static route
+
+Gateway of last resort is not set
+
+     10.0.0.0/8 is variably subnetted, 3 subnets, 2 masks
+C       10.10.10.0/30 is directly connected, Serial0/1/0
+L       10.10.10.1/32 is directly connected, Serial0/1/0
+S       10.10.20.0/30 [1/0] via 10.10.10.2
+     148.120.0.0/16 is variably subnetted, 3 subnets, 2 masks
+C       148.120.1.0/24 is directly connected, GigabitEthernet0/1
+L       148.120.1.1/32 is directly connected, GigabitEthernet0/1
+S       148.120.2.0/24 [1/0] via 10.10.10.2
+     172.16.0.0/24 is subnetted, 2 subnets
+S       172.16.10.0/24 [1/0] via 10.10.10.2
+S       172.16.20.0/24 [1/0] via 10.10.10.2
+S    192.168.20.0/24 [1/0] via 10.10.10.2
+S    192.168.25.0/24 [1/0] via 10.10.10.2
+S    192.168.30.0/24 [1/0] via 10.10.10.2
+S    202.20.3.0/24 [1/0] via 10.10.10.2
+
+R1#
+\end{verbatim}
+
+
+\section{Pruebas de conectividad}
+
+Una vez terminada la configuración de la topología se realizaron diferentes
+pruebas de conectividad mediante el comando \textit{ping}. Estas pruebas
+permitieron comprobar la comunicación tanto dentro de una misma VLAN como
+entre diferentes redes.
+
+Entre las pruebas realizadas se encuentran la comunicación entre PC-A y
+PC-B, LAPTOP-B y PC-D, PC-C y PC-E, R1 y el servidor, así como la comunicación
+entre LAPTOP-A y la interfaz de administración del switch S3.
+
+En la Figura \ref{fig:pings} se muestran las pruebas de conectividad
+realizadas durante la práctica.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{pings.png}
+  \caption{Pruebas de conectividad entre diferentes dispositivos}
+  \label{fig:pings}
+\end{figure}
+
+
+\section{Preguntas}
+
+\subsection{¿Qué nombre se le da a la configuración de una sola interfaz física
+de un router que se utiliza para enrutar el tráfico entre múltiples VLANs
+en una red?}
+
+Esta configuración recibe el nombre de \textit{router-on-a-stick}. Consiste
+en utilizar una única interfaz física del router dividida en varias
+subinterfaces lógicas. Cada subinterfaz se asocia con una VLAN diferente
+mediante el protocolo de encapsulación IEEE 802.1Q.
+
+De esta manera, el router puede recibir y enviar tráfico perteneciente a
+múltiples VLANs utilizando un único enlace físico configurado como
+\textit{trunk} entre el switch y el router.
+
+
+\subsection{¿Por qué es importante configurar la seguridad de los puertos
+de un switch?}
+
+La seguridad de puertos es importante porque permite controlar qué
+dispositivos pueden conectarse físicamente a determinados puertos del
+switch. Mediante \textit{port-security} es posible limitar la cantidad de
+direcciones MAC permitidas y establecer una acción en caso de que se detecte
+un dispositivo no autorizado.
+
+Esto ayuda a prevenir que una persona conecte un dispositivo no autorizado
+a un puerto disponible de la red y obtenga acceso a los recursos de la misma.
+Además, permite reducir algunos ataques relacionados con la manipulación de
+direcciones MAC y proporciona un mayor control sobre los dispositivos que
+forman parte de la infraestructura de red.
+
+
+\subsection{Si se desea agregar una nueva red para Alumnos en la VLAN 40 con
+la ID de red 192.168.40.0/24, ¿cuál sería el procedimiento para agregar la
+nueva red?}
+
+Para agregar la nueva red se deben realizar varios cambios en la
+infraestructura de red.
+
+Primero, se debe crear la VLAN 40 en los switches que necesiten transportar
+tráfico perteneciente a esta nueva red:
+
+\begin{verbatim}
+Switch(config)#vlan 40
+Switch(config-vlan)#name Alumnos
+Switch(config-vlan)#exit
+\end{verbatim}
+
+Posteriormente, los puertos destinados a los alumnos deben configurarse como
+puertos de acceso pertenecientes a la VLAN 40:
+
+\begin{verbatim}
+Switch(config)#interface fastEthernet 0/X
+Switch(config-if)#switchport mode access
+Switch(config-if)#switchport access vlan 40
+\end{verbatim}
+
+Si la VLAN 40 necesita atravesar un enlace troncal entre switches o entre un
+switch y un router, dicho enlace debe permitir el tráfico de la VLAN 40.
+
+En el router que proporcione el acceso a esta VLAN se debe crear una nueva
+subinterfaz. Por ejemplo, si la VLAN 40 se agregara a R2:
+
+\begin{verbatim}
+R2(config)#interface g0/1.40
+R2(config-subif)#encapsulation dot1Q 40
+R2(config-subif)#ip address 192.168.40.1 255.255.255.0
+R2(config-subif)#no shutdown
+\end{verbatim}
+
+La dirección 192.168.40.1 funcionaría como \textit{default gateway} para
+los dispositivos pertenecientes a esta nueva red.
+
+Finalmente, los dispositivos de la VLAN 40 deberán configurarse con
+direcciones pertenecientes a la red 192.168.40.0/24, por ejemplo:
+
+\begin{verbatim}
+IP:       192.168.40.10
+Mask:     255.255.255.0
+Gateway:  192.168.40.1
+\end{verbatim}
+
+Si se desea que esta nueva red pueda comunicarse con redes que se encuentran
+detrás de otros routers, también será necesario agregar las rutas
+correspondientes en los routers de la topología. En el caso de que la nueva
+VLAN se encuentre conectada directamente a R2, R2 conocerá la red
+192.168.40.0/24 como una red directamente conectada, mientras que R1 y R3
+necesitarán rutas estáticas hacia dicha red a través de R2.
+
+
+\section{Conclusión}
+
+Durante esta práctica se implementó una topología de red compuesta por tres
+routers y tres switches, utilizando VLANs para separar lógicamente diferentes
+grupos de dispositivos dentro de la infraestructura.
+
+Uno de los principales conceptos utilizados fue \textit{router-on-a-stick},
+que permitió realizar el enrutamiento entre las diferentes VLANs mediante
+subinterfaces configuradas sobre una misma interfaz física del router. Esta
+configuración permitió mantener separadas las redes de Coordinadores,
+Profesores y Becarios, mientras que los routers proporcionaron la
+comunicación entre ellas cuando era necesario.
+
+También se configuraron enlaces troncales entre los switches y los routers,
+así como enlaces seriales entre los diferentes routers. En estos últimos fue
+necesario identificar el extremo DCE y configurar el \textit{clock rate}
+correspondiente para que los enlaces pudieran operar correctamente.
+
+Otro aspecto importante de la práctica fue la implementación de
+\textit{port-security} en los puertos de acceso de los switches. Esta
+configuración proporciona una capa adicional de seguridad al limitar los
+dispositivos que pueden conectarse físicamente a determinados puertos.
+
+Finalmente, se realizaron diferentes pruebas de conectividad para verificar
+el funcionamiento de la red. Durante la configuración se presentó un
+problema debido a que algunos dispositivos no tenían configurado su
+\textit{default gateway}. Esto provocaba que los equipos pudieran
+comunicarse con dispositivos pertenecientes a su misma red, pero no pudieran
+enviar correctamente paquetes hacia otras redes. Después de configurar los
+gateways correspondientes, las pruebas de conectividad se realizaron
+correctamente.
+
+La práctica permitió comprender de manera más completa la relación entre
+VLANs, direccionamiento IP, enlaces troncales, enrutamiento estático y
+configuración de routers y switches, además de mostrar la importancia de
+verificar sistemáticamente cada componente de una topología cuando existe un
+problema de conectividad.
+
+\end{document}

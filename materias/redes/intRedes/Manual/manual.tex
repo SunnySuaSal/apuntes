@@ -1,0 +1,1407 @@
+\documentclass[12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage{graphicx}
+\usepackage[letterpaper, left=1in, right=1in, top=1in, bottom=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage[spanish]{babel}
+
+\definecolor{codegray}{RGB}{245,245,245}
+\definecolor{darkblue}{RGB}{0,45,90}
+
+\lstset{
+    backgroundcolor=\color{codegray},
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    columns=fullflexible,
+    keepspaces=true
+}
+
+\title{
+Guía de fundamentos para la configuración de redes\\[0.5em]
+\large Administración de redes
+}
+
+\author{
+Jorge Alberto Suarez Saldana\\
+\small Matrícula: 355992\\
+\small Profesor: Raymundo Antonio González Grimaldo
+}
+
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+\newpage
+
+
+\section{Introducción}
+
+Una práctica de configuración de redes como la realizada en Cisco Packet
+Tracer no consiste únicamente en memorizar comandos. Para poder construir
+una red sin ayuda es necesario comprender cómo se relacionan los diferentes
+elementos que la componen: dispositivos, interfaces, medios físicos,
+direcciones IP, subredes, VLANs, protocolos de enlace, enrutamiento y
+mecanismos de seguridad.
+
+El objetivo de este documento es reunir los conocimientos fundamentales que
+un ingeniero o estudiante de redes debería dominar para poder analizar y
+configurar por sí mismo una topología similar a la utilizada en la práctica.
+
+La idea fundamental es que, frente a una topología, se pueda responder
+sistemáticamente a las siguientes preguntas:
+
+\begin{enumerate}
+    \item ¿Qué dispositivos existen y cuál es la función de cada uno?
+    \item ¿Qué interfaces deben conectarse?
+    \item ¿Qué tipo de cable se necesita?
+    \item ¿Qué redes IP existen?
+    \item ¿Qué dispositivos pertenecen a cada red?
+    \item ¿Qué VLAN corresponde a cada dispositivo?
+    \item ¿Qué enlaces deben ser \textit{access} y cuáles \textit{trunk}?
+    \item ¿Dónde debe realizarse el enrutamiento?
+    \item ¿Qué rutas necesita conocer cada router?
+    \item ¿Qué medidas de seguridad deben configurarse?
+    \item ¿Cómo se comprobará que la configuración funciona?
+\end{enumerate}
+
+
+\section{Modelo mental de una red}
+
+Antes de comenzar a escribir comandos es conveniente entender una red como
+una serie de capas.
+
+Un dispositivo final genera información. Esa información se encapsula en
+diferentes estructuras mientras atraviesa la red. Un switch toma decisiones
+principalmente utilizando direcciones MAC, mientras que un router utiliza
+direcciones IP para decidir hacia qué red debe enviar un paquete.
+
+De forma simplificada:
+
+\begin{center}
+\textbf{Host} $\rightarrow$ \textbf{Switch} $\rightarrow$
+\textbf{Router} $\rightarrow$ \textbf{Router} $\rightarrow$
+\textbf{Switch} $\rightarrow$ \textbf{Host}
+\end{center}
+
+El switch permite la comunicación dentro de una red de capa 2, mientras que
+el router permite comunicar diferentes redes de capa 3.
+
+Esta distinción es fundamental. Si dos computadoras pertenecen a la misma
+subred, normalmente pueden comunicarse mediante el switch sin necesitar
+enrutamiento. Si pertenecen a subredes diferentes, necesitan un router o
+algún dispositivo que realice una función equivalente.
+
+
+\section{Dispositivos de red}
+
+\subsection{PC, laptop y servidor}
+
+Los dispositivos finales son los equipos que generan o reciben información.
+En Packet Tracer pueden representarse mediante PCs, laptops y servidores.
+
+Un host normalmente necesita como mínimo:
+
+\begin{itemize}
+    \item Dirección IP.
+    \item Máscara de subred.
+    \item Gateway predeterminado.
+\end{itemize}
+
+Por ejemplo:
+
+\begin{lstlisting}
+IP Address:       192.168.25.10
+Subnet Mask:      255.255.255.0
+Default Gateway:  192.168.25.1
+\end{lstlisting}
+
+La dirección IP identifica al dispositivo dentro de una red.
+
+La máscara determina qué parte de la dirección corresponde a la red y qué
+parte corresponde al host.
+
+El gateway predeterminado es la dirección a la cual se envían los paquetes
+destinados a otras redes.
+
+
+\subsection{Switch}
+
+Un switch es principalmente un dispositivo de capa 2. Su función principal
+es conectar dispositivos dentro de una red local y reenviar tramas
+utilizando direcciones MAC.
+
+El switch aprende qué dirección MAC se encuentra asociada a cada puerto y
+utiliza esa información para decidir por qué puerto enviar una trama.
+
+En una práctica de VLANs, el switch además permite dividir lógicamente una
+infraestructura física en diferentes redes de capa 2.
+
+
+\subsection{Router}
+
+Un router conecta diferentes redes IP.
+
+Por ejemplo, si existen:
+
+\[
+192.168.25.0/24
+\]
+
+y
+
+\[
+192.168.30.0/24
+\]
+
+un router puede permitir la comunicación entre ellas.
+
+Cada interfaz del router normalmente pertenece a una red diferente.
+
+Por ejemplo:
+
+\begin{lstlisting}
+GigabitEthernet0/0
+IP: 192.168.25.1
+
+GigabitEthernet0/1
+IP: 192.168.30.1
+\end{lstlisting}
+
+El router también mantiene una tabla de enrutamiento que le permite decidir
+qué camino seguir para alcanzar una red determinada.
+
+
+\section{Interfaces}
+
+Las interfaces son los puntos de conexión de los dispositivos.
+
+Algunos nombres comunes en routers Cisco son:
+
+\begin{lstlisting}
+GigabitEthernet0/0
+GigabitEthernet0/1
+Serial0/1/0
+Serial0/1/1
+\end{lstlisting}
+
+En switches pueden aparecer interfaces como:
+
+\begin{lstlisting}
+FastEthernet0/1
+FastEthernet0/2
+GigabitEthernet0/1
+\end{lstlisting}
+
+Es importante leer correctamente la numeración de las interfaces. Conectar
+un cable físicamente a un puerto no significa que ese puerto esté
+correctamente configurado.
+
+Para conocer el estado de las interfaces se utiliza:
+
+\begin{lstlisting}
+show ip interface brief
+\end{lstlisting}
+
+Una interfaz correctamente operativa normalmente debe mostrar:
+
+\begin{lstlisting}
+Status: up
+Protocol: up
+\end{lstlisting}
+
+La combinación \texttt{up/up} indica que la interfaz está activa tanto a
+nivel físico como a nivel de protocolo.
+
+
+\section{Cables y conexiones}
+
+Elegir correctamente el medio físico es una de las primeras decisiones que
+deben tomarse al construir una topología.
+
+\subsection{Cable de cobre directo}
+
+El cable \textit{Copper Straight-Through} se utiliza tradicionalmente para
+conectar dispositivos de diferente tipo, por ejemplo:
+
+\begin{itemize}
+    \item PC $\rightarrow$ Switch.
+    \item Router $\rightarrow$ Switch.
+\end{itemize}
+
+En equipos modernos existen mecanismos como Auto-MDI/MDIX que permiten
+detectar automáticamente el tipo de conexión, pero en prácticas de
+Packet Tracer sigue siendo importante conocer la distinción.
+
+
+\subsection{Cable cruzado}
+
+El cable \textit{Copper Cross-Over} se utilizaba tradicionalmente para
+conectar dispositivos del mismo tipo, por ejemplo:
+
+\begin{itemize}
+    \item Switch $\rightarrow$ Switch.
+    \item Router $\rightarrow$ Router mediante Ethernet.
+    \item PC $\rightarrow$ PC.
+\end{itemize}
+
+Nuevamente, los equipos modernos pueden realizar detección automática, pero
+el concepto sigue siendo importante para comprender las conexiones Ethernet.
+
+
+\subsection{Cable serial DCE y DTE}
+
+Las conexiones seriales son diferentes de las conexiones Ethernet.
+
+En una conexión serial existe un extremo DCE (\textit{Data Communications
+Equipment}) y un extremo DTE (\textit{Data Terminal Equipment}).
+
+El dispositivo DCE proporciona la señal de reloj necesaria para sincronizar
+la comunicación.
+
+Por esta razón, el comando:
+
+\begin{lstlisting}
+clock rate 64000
+\end{lstlisting}
+
+se configura únicamente en el extremo DCE.
+
+Para verificar qué extremo es DCE puede utilizarse:
+
+\begin{lstlisting}
+show controllers serial 0/1/0
+\end{lstlisting}
+
+La salida permite identificar si el cable conectado es DCE o DTE.
+
+Una regla práctica importante es:
+
+\begin{center}
+\textbf{DCE $\rightarrow$ configura clock rate}\\
+\textbf{DTE $\rightarrow$ no configura clock rate}
+\end{center}
+
+
+\section{Direccionamiento IPv4}
+
+Una dirección IPv4 tiene 32 bits y normalmente se representa mediante cuatro
+octetos:
+
+\[
+192.168.25.10
+\]
+
+La máscara determina qué bits corresponden a la red.
+
+Por ejemplo:
+
+\[
+192.168.25.10/24
+\]
+
+equivale a:
+
+\[
+255.255.255.0
+\]
+
+Una red /24 tiene:
+
+\[
+2^{32-24}=256
+\]
+
+direcciones totales.
+
+De ellas, normalmente:
+
+\[
+256-2=254
+\]
+
+son direcciones utilizables para hosts.
+
+La primera dirección identifica la red:
+
+\[
+192.168.25.0
+\]
+
+y la última corresponde al broadcast:
+
+\[
+192.168.25.255
+\]
+
+
+\section{Redes /30 para enlaces entre routers}
+
+Los enlaces punto a punto entre routers no necesitan cientos de direcciones.
+Por ello es común utilizar una red /30.
+
+Por ejemplo:
+
+\[
+10.10.10.0/30
+\]
+
+tiene cuatro direcciones:
+
+\begin{center}
+\begin{tabular}{|c|c|}
+\hline
+\textbf{Dirección} & \textbf{Uso} \\
+\hline
+10.10.10.0 & Red \\
+10.10.10.1 & Router 1 \\
+10.10.10.2 & Router 2 \\
+10.10.10.3 & Broadcast \\
+\hline
+\end{tabular}
+\end{center}
+
+Por eso una red /30 es muy conveniente para conectar dos routers.
+
+
+\section{Cómo construir una tabla de direccionamiento}
+
+Antes de configurar los dispositivos conviene elaborar una tabla de
+direccionamiento.
+
+Una tabla típica puede tener la siguiente estructura:
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+\textbf{Dispositivo} & \textbf{Interfaz/VLAN} &
+\textbf{Red} & \textbf{IP} & \textbf{Gateway} \\
+\hline
+R1 & G0/1 & 148.120.1.0/24 & 148.120.1.1 & -- \\
+PC-A & LAN & 148.120.1.0/24 & 148.120.1.10 & 148.120.1.1 \\
+\hline
+R2 & VLAN 25 & 192.168.25.0/24 & 192.168.25.1 & -- \\
+PC-D & VLAN 25 & 192.168.25.0/24 & 192.168.25.10 & 192.168.25.1 \\
+\hline
+R3 & VLAN 10 & 172.16.10.0/24 & 172.16.10.1 & -- \\
+PC-E & VLAN 10 & 172.16.10.0/24 & 172.16.10.10 & 172.16.10.1 \\
+\hline
+\end{tabular}
+\end{center}
+
+La tabla debe elaborarse antes de configurar para evitar utilizar
+direcciones duplicadas o asignar un gateway incorrecto.
+
+
+\section{VLANs}
+
+Una VLAN (\textit{Virtual Local Area Network}) permite dividir
+lógicamente una infraestructura de red física.
+
+Por ejemplo, un switch podría tener:
+
+\begin{itemize}
+    \item VLAN 10: Becarios.
+    \item VLAN 20: Nativa.
+    \item VLAN 25: Coordinadores.
+    \item VLAN 30: Profesores.
+\end{itemize}
+
+Aunque los dispositivos estén conectados físicamente al mismo switch,
+pertenecer a diferentes VLANs los coloca en diferentes dominios de
+broadcast de capa 2.
+
+
+\subsection{Crear una VLAN}
+
+En un switch:
+
+\begin{lstlisting}
+Switch(config)#vlan 25
+Switch(config-vlan)#name Coordinadores
+Switch(config-vlan)#exit
+\end{lstlisting}
+
+
+\subsection{Puerto de acceso}
+
+Un puerto conectado a un dispositivo final normalmente se configura como
+\textit{access}:
+
+\begin{lstlisting}
+Switch(config)#interface fastEthernet 0/7
+Switch(config-if)#switchport mode access
+Switch(config-if)#switchport access vlan 25
+\end{lstlisting}
+
+De esta manera, el dispositivo conectado a ese puerto pertenece a la
+VLAN 25.
+
+
+\subsection{Puerto trunk}
+
+Un enlace que necesita transportar varias VLANs debe utilizarse como
+\textit{trunk}.
+
+Por ejemplo:
+
+\begin{lstlisting}
+Switch(config)#interface gigabitEthernet 0/1
+Switch(config-if)#switchport mode trunk
+Switch(config-if)#switchport trunk native vlan 20
+\end{lstlisting}
+
+Los enlaces trunk son especialmente importantes cuando se conecta un switch
+con otro switch o un switch con un router que utiliza
+\textit{router-on-a-stick}.
+
+
+\section{VLAN nativa}
+
+En un enlace 802.1Q, una VLAN puede configurarse como VLAN nativa.
+
+Por ejemplo:
+
+\begin{lstlisting}
+switchport trunk native vlan 20
+\end{lstlisting}
+
+En la práctica realizada se utilizó la VLAN 20 como VLAN nativa.
+
+Es importante que ambos extremos del enlace trunk tengan configurada la
+misma VLAN nativa para evitar inconsistencias en la comunicación.
+
+
+\section{Router-on-a-stick}
+
+Cuando se desea comunicar múltiples VLANs utilizando una sola interfaz física
+del router, se utiliza una configuración conocida como
+\textit{router-on-a-stick}.
+
+La interfaz física se conecta mediante un enlace trunk al switch.
+
+Por ejemplo:
+
+\begin{lstlisting}
+R2(config)#interface g0/1
+R2(config-if)#no ip address
+R2(config-if)#no shutdown
+\end{lstlisting}
+
+Después se crean subinterfaces:
+
+\begin{lstlisting}
+R2(config)#interface g0/1.25
+R2(config-subif)#encapsulation dot1Q 25
+R2(config-subif)#ip address 192.168.25.1 255.255.255.0
+\end{lstlisting}
+
+Y otra:
+
+\begin{lstlisting}
+R2(config)#interface g0/1.30
+R2(config-subif)#encapsulation dot1Q 30
+R2(config-subif)#ip address 192.168.30.1 255.255.255.0
+\end{lstlisting}
+
+Cada subinterfaz funciona como gateway de una VLAN diferente.
+
+Por ejemplo:
+
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{VLAN} & \textbf{Red} & \textbf{Gateway} \\
+\hline
+25 & 192.168.25.0/24 & 192.168.25.1 \\
+30 & 192.168.30.0/24 & 192.168.30.1 \\
+\hline
+\end{tabular}
+\end{center}
+
+
+\section{Enrutamiento}
+
+El enrutamiento es el proceso mediante el cual un router determina por dónde
+debe enviar un paquete para alcanzar una red determinada.
+
+Un router necesita conocer las redes a las que está conectado directamente
+y, si existen otras redes remotas, necesita aprender o recibir información
+sobre cómo alcanzarlas.
+
+
+\subsection{Redes directamente conectadas}
+
+Cuando se configura una interfaz:
+
+\begin{lstlisting}
+interface g0/1
+ip address 148.120.1.1 255.255.255.0
+no shutdown
+\end{lstlisting}
+
+el router automáticamente conoce la red:
+
+\[
+148.120.1.0/24
+\]
+
+Esta aparecerá en la tabla de enrutamiento como una red conectada
+directamente.
+
+
+\subsection{Rutas estáticas}
+
+Una ruta estática se configura manualmente.
+
+La sintaxis general es:
+
+\begin{lstlisting}
+ip route RED MASCARA NEXT-HOP
+\end{lstlisting}
+
+Por ejemplo:
+
+\begin{lstlisting}
+R1(config)#ip route 192.168.25.0 255.255.255.0 10.10.10.2
+\end{lstlisting}
+
+Esto significa:
+
+\begin{center}
+``Para llegar a 192.168.25.0/24, envía el paquete hacia 10.10.10.2.''
+\end{center}
+
+Una ruta estática siempre debe analizarse desde la perspectiva del router
+en el que se está configurando.
+
+
+\section{Cómo diseñar las rutas estáticas}
+
+Para construir rutas estáticas correctamente hay que pensar en ambos sentidos.
+
+Supongamos:
+
+\[
+R1 \longleftrightarrow R2 \longleftrightarrow R3
+\]
+
+Si una computadora detrás de R1 quiere comunicarse con una computadora
+detrás de R3, deben existir rutas para:
+
+\begin{enumerate}
+    \item R1 $\rightarrow$ R3.
+    \item R2 $\rightarrow$ R3.
+    \item R3 $\rightarrow$ R1.
+\end{enumerate}
+
+No basta con que el paquete llegue al destino. El destino también necesita
+saber cómo devolver la respuesta.
+
+Este es uno de los errores más comunes al configurar redes manualmente.
+
+
+\section{Tabla de enrutamiento}
+
+La tabla de enrutamiento puede consultarse mediante:
+
+\begin{lstlisting}
+show ip route
+\end{lstlisting}
+
+Algunas letras importantes son:
+
+\begin{center}
+\begin{tabular}{|c|l|}
+\hline
+\textbf{Código} & \textbf{Significado} \\
+\hline
+C & Connected, red conectada directamente \\
+L & Local, dirección de una interfaz del router \\
+S & Static, ruta estática \\
+\hline
+\end{tabular}
+\end{center}
+
+Por ejemplo:
+
+\begin{lstlisting}
+C    192.168.25.0/24 is directly connected
+S    172.16.10.0/24 [1/0] via 10.10.20.2
+\end{lstlisting}
+
+La primera red está conectada directamente y la segunda se alcanza mediante
+una ruta estática.
+
+
+\section{Gateway predeterminado}
+
+El gateway predeterminado es uno de los conceptos más importantes para
+diagnosticar problemas de conectividad.
+
+Si un host quiere comunicarse con otro dispositivo de la misma red, no
+necesariamente necesita utilizar el gateway.
+
+Pero si el destino pertenece a otra red, el host debe enviar el paquete al
+gateway.
+
+Por ejemplo:
+
+\begin{lstlisting}
+PC-D
+IP:       192.168.25.10
+Mask:     255.255.255.0
+Gateway:  192.168.25.1
+\end{lstlisting}
+
+Si PC-D quiere comunicarse con:
+
+\[
+192.168.25.11
+\]
+
+el destino está en su misma red.
+
+Pero si quiere comunicarse con:
+
+\[
+172.16.10.10
+\]
+
+debe enviar el paquete a:
+
+\[
+192.168.25.1
+\]
+
+Si el gateway está vacío o es incorrecto, la comunicación hacia otras redes
+fallará aunque la configuración del switch y del router sea correcta.
+
+
+\section{Seguridad básica de los dispositivos Cisco}
+
+La seguridad de una red no comienza únicamente con protocolos avanzados.
+También es necesario proteger el acceso administrativo a los dispositivos.
+
+
+\subsection{Modo privilegiado}
+
+El modo privilegiado se obtiene mediante:
+
+\begin{lstlisting}
+Router>enable
+\end{lstlisting}
+
+Para protegerlo puede utilizarse:
+
+\begin{lstlisting}
+Router(config)#enable secret class
+\end{lstlisting}
+
+El uso de \texttt{enable secret} es preferible a una contraseña configurada
+simplemente con \texttt{enable password}.
+
+
+\subsection{Contraseña de consola}
+
+Puede protegerse el acceso por consola:
+
+\begin{lstlisting}
+Router(config)#line console 0
+Router(config-line)#password cisco
+Router(config-line)#login
+\end{lstlisting}
+
+
+\subsection{Cifrado de contraseñas}
+
+Puede habilitarse:
+
+\begin{lstlisting}
+Router(config)#service password-encryption
+\end{lstlisting}
+
+Esto evita que ciertas contraseñas aparezcan directamente en texto plano
+dentro de la configuración.
+
+
+\subsection{Banner}
+
+Un dispositivo también puede mostrar una advertencia al iniciar sesión:
+
+\begin{lstlisting}
+Router(config)#banner motd #ACCESO RESTRINGIDO - SOLO PERSONAL AUTORIZADO#
+\end{lstlisting}
+
+El banner tiene principalmente una función informativa y administrativa.
+
+
+\section{Seguridad de puertos}
+
+Un switch puede utilizar \textit{port-security} para limitar qué dispositivos
+pueden utilizar un puerto de acceso.
+
+Una configuración básica es:
+
+\begin{lstlisting}
+Switch(config)#interface fastEthernet 0/7
+Switch(config-if)#switchport mode access
+Switch(config-if)#switchport access vlan 25
+Switch(config-if)#switchport port-security
+Switch(config-if)#switchport port-security maximum 1
+Switch(config-if)#switchport port-security violation shutdown
+\end{lstlisting}
+
+En este ejemplo se permite como máximo una dirección MAC en el puerto.
+
+Si se detecta una violación, el puerto puede quedar deshabilitado.
+
+La seguridad de puertos ayuda a impedir que cualquier dispositivo conectado
+físicamente pueda utilizar libremente un puerto de la infraestructura.
+
+
+\section{Modos de configuración de Cisco IOS}
+
+Es fundamental distinguir los diferentes modos de la CLI.
+
+\subsection{User EXEC}
+
+\begin{lstlisting}
+Router>
+\end{lstlisting}
+
+Permite realizar operaciones básicas.
+
+
+\subsection{Privileged EXEC}
+
+\begin{lstlisting}
+Router#
+\end{lstlisting}
+
+Se obtiene con:
+
+\begin{lstlisting}
+enable
+\end{lstlisting}
+
+Aquí pueden ejecutarse comandos de diagnóstico como:
+
+\begin{lstlisting}
+show ip route
+show running-config
+show ip interface brief
+\end{lstlisting}
+
+
+\subsection{Global configuration}
+
+\begin{lstlisting}
+Router(config)#
+\end{lstlisting}
+
+Se obtiene mediante:
+
+\begin{lstlisting}
+configure terminal
+\end{lstlisting}
+
+Desde aquí se modifican configuraciones generales.
+
+
+\subsection{Interface configuration}
+
+\begin{lstlisting}
+Router(config-if)#
+\end{lstlisting}
+
+Se obtiene mediante:
+
+\begin{lstlisting}
+interface g0/1
+\end{lstlisting}
+
+Aquí se configuran parámetros específicos de una interfaz.
+
+
+\subsection{Subinterface configuration}
+
+\begin{lstlisting}
+Router(config-subif)#
+\end{lstlisting}
+
+Aparece al configurar una subinterfaz:
+
+\begin{lstlisting}
+interface g0/1.25
+\end{lstlisting}
+
+
+\section{Comandos fundamentales}
+
+Los siguientes comandos deberían formar parte del repertorio básico de
+cualquier estudiante de redes Cisco.
+
+\subsection{Comandos de configuración}
+
+\begin{lstlisting}
+enable
+configure terminal
+hostname R1
+no ip domain-lookup
+interface g0/1
+ip address 192.168.1.1 255.255.255.0
+no shutdown
+exit
+end
+\end{lstlisting}
+
+
+\subsection{Comandos de diagnóstico}
+
+\begin{lstlisting}
+show ip interface brief
+show running-config
+show startup-config
+show ip route
+show vlan brief
+show interfaces trunk
+\end{lstlisting}
+
+
+\subsection{Comandos de conectividad}
+
+Desde un host:
+
+\begin{lstlisting}
+ping 192.168.25.1
+ping 192.168.30.10
+\end{lstlisting}
+
+Desde un router:
+
+\begin{lstlisting}
+ping 202.20.3.10
+\end{lstlisting}
+
+También puede utilizarse:
+
+\begin{lstlisting}
+traceroute 202.20.3.10
+\end{lstlisting}
+
+para observar por qué dispositivos atraviesa el paquete.
+
+
+\subsection{Guardar la configuración}
+
+La configuración activa se encuentra en la memoria RAM y puede perderse
+si el dispositivo se reinicia.
+
+Para guardarla:
+
+\begin{lstlisting}
+copy running-config startup-config
+\end{lstlisting}
+
+La idea fundamental es:
+
+\begin{center}
+\texttt{running-config} = configuración activa
+
+\texttt{startup-config} = configuración guardada para el arranque
+\end{center}
+
+
+\section{Diagnóstico sistemático de problemas}
+
+Cuando un ping falla, no conviene comenzar cambiando rutas al azar.
+
+Un ingeniero de redes debe diagnosticar de abajo hacia arriba.
+
+
+\subsection{Paso 1: revisar el cableado}
+
+Primero debe verificarse:
+
+\begin{itemize}
+    \item ¿El cable conecta los puertos correctos?
+    \item ¿El tipo de cable es apropiado?
+    \item ¿Las interfaces están físicamente activas?
+\end{itemize}
+
+
+\subsection{Paso 2: revisar interfaces}
+
+En routers:
+
+\begin{lstlisting}
+show ip interface brief
+\end{lstlisting}
+
+Se debe buscar especialmente:
+
+\begin{lstlisting}
+up    up
+\end{lstlisting}
+
+Si aparece:
+
+\begin{lstlisting}
+administratively down
+\end{lstlisting}
+
+normalmente falta:
+
+\begin{lstlisting}
+no shutdown
+\end{lstlisting}
+
+
+\subsection{Paso 3: comprobar la configuración IP}
+
+Verificar:
+
+\begin{itemize}
+    \item Dirección IP.
+    \item Máscara.
+    \item Gateway.
+\end{itemize}
+
+Un error muy pequeño en cualquiera de estos valores puede impedir la
+comunicación.
+
+
+\subsection{Paso 4: comprobar las VLANs}
+
+En el switch:
+
+\begin{lstlisting}
+show vlan brief
+\end{lstlisting}
+
+Esto permite verificar qué VLANs existen y qué puertos pertenecen a cada
+una.
+
+
+\subsection{Paso 5: comprobar los trunks}
+
+Utilizar:
+
+\begin{lstlisting}
+show interfaces trunk
+\end{lstlisting}
+
+Se debe comprobar que:
+
+\begin{itemize}
+    \item El puerto realmente funciona como trunk.
+    \item Las VLAN necesarias están permitidas.
+    \item La VLAN nativa es consistente.
+\end{itemize}
+
+
+\subsection{Paso 6: comprobar el gateway}
+
+Desde el host se puede hacer primero ping al gateway.
+
+Por ejemplo:
+
+\begin{lstlisting}
+ping 192.168.25.1
+\end{lstlisting}
+
+Si este ping falla, todavía no tiene sentido investigar rutas entre routers:
+el problema se encuentra probablemente entre el host y su gateway.
+
+
+\subsection{Paso 7: comprobar el enrutamiento}
+
+En cada router:
+
+\begin{lstlisting}
+show ip route
+\end{lstlisting}
+
+Hay que preguntarse:
+
+\begin{center}
+\textbf{¿El router conoce la red destino?}
+\end{center}
+
+Y posteriormente:
+
+\begin{center}
+\textbf{¿El router destino sabe cómo regresar?}
+\end{center}
+
+
+\section{Metodología para configurar una topología desde cero}
+
+Una metodología ordenada reduce considerablemente los errores.
+
+\subsection{Paso 1: estudiar la topología}
+
+Antes de introducir comandos se deben identificar:
+
+\begin{itemize}
+    \item Routers.
+    \item Switches.
+    \item Hosts.
+    \item Servidores.
+    \item Interfaces.
+    \item Enlaces.
+\end{itemize}
+
+
+\subsection{Paso 2: identificar las redes}
+
+Cada segmento de capa 3 debe tener su propia red.
+
+Por ejemplo:
+
+\begin{center}
+\begin{tabular}{|c|c|}
+\hline
+\textbf{Segmento} & \textbf{Red} \\
+\hline
+LAN R1 & 148.120.1.0/24 \\
+R1--R2 & 10.10.10.0/30 \\
+LAN R2 & 148.120.2.0/24 \\
+R2--R3 & 10.10.20.0/30 \\
+VLAN 25 & 192.168.25.0/24 \\
+VLAN 30 & 192.168.30.0/24 \\
+VLAN 10 & 172.16.10.0/24 \\
+Servidor & 202.20.3.0/24 \\
+\hline
+\end{tabular}
+\end{center}
+
+
+\subsection{Paso 3: construir la tabla de direccionamiento}
+
+Nunca debería ser necesario ``adivinar'' una dirección IP mientras se
+configura un dispositivo.
+
+La tabla debe contener todas las direcciones antes de comenzar.
+
+
+\subsection{Paso 4: configurar los dispositivos}
+
+Una posible secuencia es:
+
+\begin{enumerate}
+    \item Configuración básica de routers.
+    \item Configuración básica de switches.
+    \item Direcciones IP de interfaces.
+    \item VLANs.
+    \item Puertos de acceso.
+    \item Trunks.
+    \item Subinterfaces.
+    \item Enlaces seriales.
+    \item Rutas estáticas.
+    \item Seguridad.
+\end{enumerate}
+
+
+\subsection{Paso 5: configurar los hosts}
+
+Cada host debe recibir:
+
+\begin{lstlisting}
+IP Address
+Subnet Mask
+Default Gateway
+\end{lstlisting}
+
+El gateway debe corresponder con la interfaz del router perteneciente a la
+misma red.
+
+
+\subsection{Paso 6: probar progresivamente}
+
+No es recomendable probar únicamente un ping entre dos extremos de una
+topología compleja.
+
+Primero:
+
+\[
+Host \rightarrow Gateway
+\]
+
+Después:
+
+\[
+Router \rightarrow Router
+\]
+
+Después:
+
+\[
+Host \rightarrow Host
+\]
+
+Finalmente se prueban comunicaciones entre redes alejadas.
+
+
+\section{Ejemplo de razonamiento completo}
+
+Supongamos que PC-C tiene:
+
+\begin{lstlisting}
+IP:       192.168.30.11
+Mask:     255.255.255.0
+Gateway:  192.168.30.1
+\end{lstlisting}
+
+y PC-E:
+
+\begin{lstlisting}
+IP:       172.16.10.10
+Mask:     255.255.255.0
+Gateway:  172.16.10.1
+\end{lstlisting}
+
+PC-C y PC-E pertenecen a redes diferentes.
+
+Por lo tanto:
+
+\[
+192.168.30.0/24
+\neq
+172.16.10.0/24
+\]
+
+PC-C debe enviar el paquete a su gateway:
+
+\[
+192.168.30.1
+\]
+
+El router R2 debe saber cómo llegar a:
+
+\[
+172.16.10.0/24
+\]
+
+Por ejemplo:
+
+\begin{lstlisting}
+ip route 172.16.10.0 255.255.255.0 10.10.20.2
+\end{lstlisting}
+
+Después, R3 debe recibir el paquete y entregarlo mediante su interfaz
+correspondiente a la VLAN 10.
+
+Para que la respuesta funcione, R3 también debe conocer cómo regresar a
+192.168.30.0/24.
+
+Este ejemplo muestra por qué la conectividad de una red depende de toda la
+cadena y no únicamente de la configuración del dispositivo que contiene
+al host.
+
+
+\section{Cómo agregar una nueva VLAN}
+
+Supongamos que se solicita:
+
+\[
+\text{VLAN 40 -- Alumnos}
+\]
+
+con:
+
+\[
+192.168.40.0/24
+\]
+
+El procedimiento general sería:
+
+\begin{enumerate}
+    \item Crear la VLAN 40 en los switches necesarios.
+    \item Asignar los puertos de los alumnos a la VLAN 40.
+    \item Permitir la VLAN 40 por los enlaces trunk necesarios.
+    \item Crear una subinterfaz para VLAN 40 en el router.
+    \item Asignarle un gateway, por ejemplo 192.168.40.1.
+    \item Configurar los hosts de la nueva VLAN.
+    \item Agregar rutas estáticas en otros routers si necesitan alcanzar
+    la nueva red.
+    \item Probar conectividad.
+\end{enumerate}
+
+La subinterfaz podría ser:
+
+\begin{lstlisting}
+interface g0/1.40
+encapsulation dot1Q 40
+ip address 192.168.40.1 255.255.255.0
+\end{lstlisting}
+
+Este procedimiento es una aplicación directa de los conceptos de VLAN,
+trunk, router-on-a-stick y enrutamiento.
+
+
+\section{Tabla de comandos esenciales}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|l|p{8cm}|}
+\hline
+\textbf{Comando} & \textbf{Función} \\
+\hline
+\texttt{enable} & Entrar al modo privilegiado. \\
+\hline
+\texttt{configure terminal} & Entrar al modo de configuración global. \\
+\hline
+\texttt{hostname} & Cambiar el nombre del dispositivo. \\
+\hline
+\texttt{interface} & Entrar a una interfaz. \\
+\hline
+\texttt{ip address} & Configurar una dirección IP. \\
+\hline
+\texttt{no shutdown} & Activar una interfaz. \\
+\hline
+\texttt{shutdown} & Desactivar una interfaz. \\
+\hline
+\texttt{vlan} & Crear o modificar una VLAN. \\
+\hline
+\texttt{switchport mode access} & Configurar un puerto como acceso. \\
+\hline
+\texttt{switchport mode trunk} & Configurar un puerto como trunk. \\
+\hline
+\texttt{switchport access vlan} & Asignar un puerto de acceso a una VLAN. \\
+\hline
+\texttt{encapsulation dot1Q} & Asociar una subinterfaz con una VLAN. \\
+\hline
+\texttt{ip route} & Crear una ruta estática. \\
+\hline
+\texttt{show ip interface brief} & Mostrar estado resumido de interfaces. \\
+\hline
+\texttt{show ip route} & Mostrar tabla de enrutamiento. \\
+\hline
+\texttt{show running-config} & Mostrar configuración activa. \\
+\hline
+\texttt{show vlan brief} & Mostrar VLANs y puertos asociados. \\
+\hline
+\texttt{show interfaces trunk} & Mostrar información de enlaces trunk. \\
+\hline
+\texttt{ping} & Comprobar conectividad IP. \\
+\hline
+\texttt{traceroute} & Mostrar el camino hacia un destino. \\
+\hline
+\texttt{copy running-config startup-config} & Guardar la configuración. \\
+\hline
+\end{tabular}
+\end{center}
+
+
+\section{Lista de comprobación}
+
+Antes de considerar terminada una práctica de este tipo, conviene realizar
+la siguiente comprobación.
+
+\subsection*{Capa física}
+
+\begin{itemize}
+    \item[$\square$] Los cables están conectados a los puertos correctos.
+    \item[$\square$] Los enlaces seriales tienen un extremo DCE.
+    \item[$\square$] El extremo DCE tiene configurado \texttt{clock rate}.
+    \item[$\square$] Las interfaces necesarias están en estado \texttt{up/up}.
+\end{itemize}
+
+\subsection*{Direccionamiento}
+
+\begin{itemize}
+    \item[$\square$] Cada red tiene una dirección diferente.
+    \item[$\square$] No existen direcciones IP duplicadas.
+    \item[$\square$] Las máscaras son correctas.
+    \item[$\square$] Cada host tiene un gateway correcto.
+\end{itemize}
+
+\subsection*{VLANs}
+
+\begin{itemize}
+    \item[$\square$] Todas las VLANs necesarias fueron creadas.
+    \item[$\square$] Los puertos de acceso pertenecen a la VLAN correcta.
+    \item[$\square$] Los enlaces necesarios son trunk.
+    \item[$\square$] La VLAN nativa coincide en ambos extremos.
+\end{itemize}
+
+\subsection*{Enrutamiento}
+
+\begin{itemize}
+    \item[$\square$] Cada router conoce sus redes directamente conectadas.
+    \item[$\square$] Existen rutas hacia las redes remotas.
+    \item[$\square$] Las rutas de regreso también existen.
+    \item[$\square$] Los siguientes saltos son alcanzables.
+\end{itemize}
+
+\subsection*{Seguridad}
+
+\begin{itemize}
+    \item[$\square$] Existe una contraseña de modo privilegiado.
+    \item[$\square$] El acceso por consola está protegido.
+    \item[$\square$] Las contraseñas correspondientes están protegidas.
+    \item[$\square$] Los puertos de acceso tienen \textit{port-security} cuando
+    sea necesario.
+\end{itemize}
+
+\subsection*{Pruebas}
+
+\begin{itemize}
+    \item[$\square$] Cada host puede alcanzar su gateway.
+    \item[$\square$] Los routers pueden comunicarse entre sí.
+    \item[$\square$] Los hosts pueden comunicarse dentro de su VLAN.
+    \item[$\square$] Los hosts pueden comunicarse entre diferentes VLANs.
+    \item[$\square$] Se puede alcanzar el servidor desde las diferentes redes.
+\end{itemize}
+
+
+\section{Conclusión}
+
+Configurar una red correctamente requiere mucho más que conocer la sintaxis
+de Cisco IOS. El verdadero objetivo es desarrollar un modelo mental que
+permita interpretar una topología y convertirla en una configuración
+coherente.
+
+Los conceptos fundamentales están relacionados entre sí. Los cables
+permiten construir la conectividad física; los switches permiten transportar
+tramas y separar dominios mediante VLANs; los routers conectan diferentes
+redes; las direcciones IP identifican los dispositivos dentro de esas redes;
+y las tablas de enrutamiento permiten determinar hacia dónde deben enviarse
+los paquetes.
+
+De la misma manera, conceptos como \textit{trunk}, VLAN nativa y
+\textit{router-on-a-stick} no deben aprenderse como comandos independientes.
+Todos describen diferentes partes del mismo problema: transportar y enrutar
+tráfico perteneciente a múltiples redes sobre una infraestructura física
+compartida.
+
+Una buena metodología consiste en comenzar siempre por la topología,
+identificar las redes, elaborar una tabla de direccionamiento y después
+configurar progresivamente los dispositivos. Finalmente, la conectividad
+debe comprobarse desde los elementos más cercanos hasta los más lejanos.
+
+Cuando un ping falla, el objetivo no debe ser simplemente ``hacer que
+funcione'', sino determinar en qué punto de la cadena se interrumpe la
+comunicación. Para ello se deben revisar sucesivamente la capa física, las
+interfaces, las VLANs, los gateways, las tablas de enrutamiento y las rutas
+de regreso.
+
+Dominar esta forma de pensar permite pasar de seguir instrucciones
+específicas de una práctica a ser capaz de analizar y construir una red por
+cuenta propia.
+
+\end{document}
