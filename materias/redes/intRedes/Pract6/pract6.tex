@@ -1,0 +1,883 @@
+\documentclass[12pt,a4paper]{article}
+
+% ------------------------------------------------
+% Paquetes
+% ------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish, es-nodecimaldot]{babel}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+
+% ------------------------------------------------
+% Configuración de página
+% ------------------------------------------------
+\geometry{
+    top=2.5cm,
+    bottom=2.5cm,
+    left=2.5cm,
+    right=2.5cm
+}
+
+% ------------------------------------------------
+% Configuración de listings
+% ------------------------------------------------
+\definecolor{codegray}{gray}{0.95}
+
+\lstset{
+    backgroundcolor=\color{codegray},
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    columns=fullflexible,
+    keepspaces=true,
+    showstringspaces=false,
+    tabsize=2
+}
+
+% ------------------------------------------------
+% Encabezado y pie de página
+% ------------------------------------------------
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Interacción de redes}
+\rhead{Práctica 6}
+\cfoot{\thepage}
+\setlength{\headheight}{15pt}
+
+% ------------------------------------------------
+% Configuración de títulos
+% ------------------------------------------------
+\titleformat{\section}
+{\large\bfseries}
+{\thesection.}
+{0.5em}
+{}
+
+% ------------------------------------------------
+% Hipervínculos
+% ------------------------------------------------
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue,
+    citecolor=black
+}
+
+% ------------------------------------------------
+% Comando para insertar capturas opcionales
+% Si el archivo no existe, se muestra un marcador.
+% ------------------------------------------------
+\newcommand{\captura}[2]{%
+    \begin{figure}[H]
+        \centering
+        \IfFileExists{#1}{%
+            \includegraphics[width=0.92\textwidth,keepaspectratio]{#1}
+        }{%
+            \fbox{%
+                \parbox[c][4cm][c]{0.82\textwidth}{%
+                    \centering
+                    \textbf{Captura pendiente}\\[0.5em]
+                    Archivo esperado: \texttt{#1}
+                }%
+            }%
+        }
+        \caption{#2}
+    \end{figure}
+}
+
+% ------------------------------------------------
+% Datos del documento
+% ------------------------------------------------
+\title{
+    Práctica 6: \textbf{OSPF y ACL extendidas}\\[0.5em]
+    \large Interacción de redes
+}
+
+\author{
+    Jorge Alberto Suárez Saldaña\\
+    \small Matrícula: 355992\\
+    \small Profesor: Raymundo Antonio González Grimaldo
+}
+
+\date{\today}
+
+% ------------------------------------------------
+% Documento
+% ------------------------------------------------
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+En esta práctica se implementó una infraestructura de red empresarial
+en Cisco Packet Tracer, utilizando enrutamiento dinámico mediante OSPF
+y listas de control de acceso extendidas (ACL) para regular el tráfico
+entre distintas redes. Se establecieron políticas de comunicación para
+las redes de usuarios, administración, servidores y una red externa.
+Asimismo, se consideraron los servicios HTTP, HTTPS, FTP y SSH
+para comprobar cómo las reglas de filtrado permiten o restringen
+las comunicaciones de acuerdo con los requisitos de seguridad.
+\end{abstract}
+
+\section{Introducción}
+
+En una infraestructura de red empresarial no basta con garantizar que
+los dispositivos puedan comunicarse entre sí. También es necesario
+controlar qué dispositivos pueden acceder a determinados recursos y
+qué servicios tienen permitido utilizar.
+
+El enrutamiento permite que los paquetes lleguen a redes distintas
+de aquella en la que se originaron. Sin embargo, el hecho de que exista
+una ruta válida no implica que toda comunicación deba estar autorizada.
+Para implementar restricciones se utilizan las listas de control de
+acceso, conocidas como ACL (\textit{Access Control Lists}).
+
+En esta práctica se construyó una topología con varios routers,
+redes locales, servidores y una red externa. Se empleó OSPF
+(\textit{Open Shortest Path First}) para intercambiar rutas entre
+los routers internos y se utilizaron ACL extendidas para filtrar
+tráfico según las direcciones IP de origen y destino, el protocolo
+y, cuando corresponde, los puertos TCP.
+
+Las políticas establecidas buscan permitir las comunicaciones
+necesarias para el funcionamiento de la empresa y restringir las
+que no están autorizadas. Se prestó especial atención a la protección
+de los servidores, al acceso remoto mediante SSH y a la separación
+entre el tráfico HTTP y HTTPS.
+
+\section{Objetivos}
+
+\subsection{Objetivo general}
+
+Configurar y evaluar una red empresarial en Cisco Packet Tracer
+mediante OSPF y ACL extendidas, aplicando políticas de acceso
+entre redes de usuarios, administración, servidores y una red externa.
+
+\subsection{Objetivos específicos}
+
+\begin{itemize}
+    \item Diseñar una topología con múltiples routers y redes LAN.
+    \item Configurar direccionamiento IPv4 en las interfaces de red.
+    \item Implementar OSPF para el intercambio de rutas entre routers.
+    \item Configurar una ruta predeterminada hacia la red externa.
+    \item Habilitar el acceso remoto seguro mediante SSH en los routers.
+    \item Configurar ACL extendidas para controlar el tráfico entre redes.
+    \item Permitir HTTPS y bloquear HTTP en las comunicaciones
+    de la red empresarial hacia la red externa.
+    \item Restringir el acceso a los servidores según la red de origen
+    y el servicio solicitado.
+    \item Permitir el acceso de administración a los servidores.
+    \item Establecer reglas para FTP, HTTPS, ICMP y SSH.
+    \item Definir pruebas que permitan comprobar las políticas de acceso.
+\end{itemize}
+
+\section{Fundamentos teóricos}
+
+\subsection{Enrutamiento dinámico}
+
+El enrutamiento es el proceso mediante el cual un router determina
+por dónde debe enviar un paquete para alcanzar una red de destino.
+Las tablas de enrutamiento contienen información sobre las redes
+conocidas y el siguiente salto o interfaz que debe utilizarse.
+
+En una red con varios routers, las rutas pueden configurarse
+manualmente o aprenderse mediante un protocolo de enrutamiento
+dinámico. En esta práctica se utilizó OSPF para las redes internas.
+
+\subsection{Protocolo OSPF}
+
+OSPF es un protocolo de enrutamiento de estado de enlace. Los routers
+que participan en el mismo dominio intercambian información sobre
+la topología y calculan las rutas mediante el algoritmo SPF
+(\textit{Shortest Path First}).
+
+Entre sus características principales se encuentran:
+
+\begin{itemize}
+    \item Utiliza un identificador de proceso local para su configuración.
+    \item Permite organizar routers y redes en áreas.
+    \item Utiliza identificadores de router (\textit{Router ID}).
+    \item Calcula rutas considerando el costo de los enlaces.
+    \item Actualiza las rutas cuando detecta cambios en la topología.
+\end{itemize}
+
+En esta práctica se empleó el área 0, correspondiente al área
+de backbone de OSPF. La red externa conectada a R4 no se incorporó
+al proceso OSPF interno; en su lugar, se configuró una ruta
+predeterminada en R3 y se anunció a los routers internos.
+
+\subsection{Listas de control de acceso extendidas}
+
+Una ACL es una secuencia ordenada de reglas que permite o deniega
+paquetes. Una ACL extendida puede evaluar diferentes campos,
+entre ellos:
+
+\begin{itemize}
+    \item Dirección IP de origen.
+    \item Dirección IP de destino.
+    \item Protocolo de transporte o de red, como TCP, UDP o ICMP.
+    \item Puerto de origen o destino para protocolos como TCP y UDP.
+\end{itemize}
+
+Las reglas se procesan de arriba hacia abajo. Cuando un paquete
+coincide con una regla, se aplica esa acción y no se continúa
+evaluando el resto de la lista. Además, existe una denegación
+implícita al final de las ACL de Cisco: si ningún permiso coincide,
+el paquete se descarta.
+
+Por esta razón, el orden de las reglas es fundamental. Las
+excepciones específicas deben colocarse antes de las denegaciones
+generales.
+
+\subsection{Dirección y punto de aplicación de una ACL}
+
+Una ACL puede aplicarse en dirección de entrada (\texttt{in})
+o de salida (\texttt{out}) en una interfaz.
+
+\begin{itemize}
+    \item \textbf{Entrada (\texttt{in}):} evalúa los paquetes cuando
+    ingresan al router por la interfaz correspondiente.
+    \item \textbf{Salida (\texttt{out}):} evalúa los paquetes que
+    van a salir del router por dicha interfaz.
+\end{itemize}
+
+La selección de interfaz y dirección determina qué tráfico será
+evaluado. Por ejemplo, una ACL aplicada en salida sobre la interfaz
+de R2 que conecta con los servidores puede controlar los paquetes
+que el router envía hacia esa red.
+
+Una ACL aplicada en una interfaz no se aplica automáticamente
+a todas las demás interfaces del router. Por ello, la ubicación
+de cada lista debe corresponder al flujo de tráfico que se desea
+controlar.
+
+\subsection{Servicios y puertos utilizados}
+
+En la práctica se contemplaron los siguientes protocolos:
+
+\begin{itemize}
+    \item \textbf{HTTP:} utiliza normalmente TCP 80 para el acceso
+    a páginas web sin cifrado.
+    \item \textbf{HTTPS:} utiliza normalmente TCP 443 para la
+    comunicación web cifrada.
+    \item \textbf{FTP:} utiliza TCP 20 como canal de data y 21 como canal de control.
+    El canal de datos depende del modo de transferencia y de
+    la implementación del servicio.
+    \item \textbf{SSH:} utiliza TCP 22 para la administración
+    remota cifrada.
+\end{itemize}
+
+En una ACL, una regla como \texttt{permit tcp ... eq 443} permite
+tráfico TCP cuyo puerto de destino coincide con 443. Esto no equivale
+a permitir todo el tráfico de una aplicación en cualquier dirección:
+la regla se evalúa de acuerdo con las direcciones, el protocolo,
+el puerto y la interfaz donde se aplica.
+
+\section{Diseño de la topología}
+
+\subsection{Descripción general}
+
+La topología se organizó en las siguientes redes:
+
+\begin{itemize}
+    \item \textbf{RedA:} primera red de usuarios empresariales.
+    \item \textbf{RedB:} segunda red de usuarios empresariales.
+    \item \textbf{Red de servidores:} contiene Serv1, Serv2 y Serv3.
+    \item \textbf{Red de administración:} contiene los equipos
+    utilizados para tareas administrativas.
+    \item \textbf{Red externa:} contiene PCEXT y ServE.
+\end{itemize}
+
+Los routers se conectaron mediante enlaces seriales para permitir
+la comunicación entre las distintas redes. R1 conecta las redes
+de usuarios; R2 proporciona acceso a la red de servidores; R3
+conecta la red de administración y funciona como salida hacia
+R4; y R4 conecta la infraestructura interna con la red externa.
+
+\captura{topologia.png}
+{Topología completa de la infraestructura implementada en Packet Tracer.}
+
+\section{Plan de direccionamiento IPv4}
+
+Se utilizaron subredes /24 para las redes LAN y subredes /30 para
+los enlaces seriales punto a punto. Una máscara /24 permite disponer
+de 254 direcciones de host utilizables, mientras que una subred /30
+dispone de dos direcciones de host utilizables.
+
+\subsection{Redes LAN}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Red} & \textbf{Dirección} & \textbf{Gateway} & \textbf{Máscara} \\
+\hline
+RedA & 148.20.0.0/24 & 148.20.0.1 & 255.255.255.0 \\
+\hline
+RedB & 148.20.1.0/24 & 148.20.1.1 & 255.255.255.0 \\
+\hline
+Servidores & 148.20.15.0/24 & 148.20.15.1 & 255.255.255.0 \\
+\hline
+Administración & 148.20.16.0/24 & 148.20.16.1 & 255.255.255.0 \\
+\hline
+Red externa & 201.30.20.0/24 & 201.30.20.1 & 255.255.255.0 \\
+\hline
+\end{tabular}
+\caption{Direccionamiento de las redes LAN.}
+\end{table}
+
+\subsection{Direcciones de los equipos finales}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Equipo} & \textbf{Dirección IPv4} & \textbf{Gateway} \\
+\hline
+PCA & 148.20.0.100 & 148.20.0.1 \\
+\hline
+PCB & 148.20.0.101 & 148.20.0.1 \\
+\hline
+PCC & 148.20.1.100 & 148.20.1.1 \\
+\hline
+PCD & 148.20.1.101 & 148.20.1.1 \\
+\hline
+Serv1 & 148.20.15.10 & 148.20.15.1 \\
+\hline
+Serv2 & 148.20.15.11 & 148.20.15.1 \\
+\hline
+Serv3 & 148.20.15.12 & 148.20.15.1 \\
+\hline
+PCE & 148.20.16.100 & 148.20.16.1 \\
+\hline
+PCF & 148.20.16.101 & 148.20.16.1 \\
+\hline
+PCEXT & 201.30.20.200 & 201.30.20.1 \\
+\hline
+ServE & 201.30.20.100 & 201.30.20.1 \\
+\hline
+\end{tabular}
+\caption{Direcciones asignadas a los equipos finales.}
+\end{table}
+
+\subsection{Enlaces seriales entre routers}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Enlace} & \textbf{Red /30} & \textbf{Extremo 1} & \textbf{Extremo 2} \\
+\hline
+R2--R3 & 148.20.20.0/30 & R2: 148.20.20.1 & R3: 148.20.20.2 \\
+\hline
+R1--R3 & 148.20.20.4/30 & R1: 148.20.20.5 & R3: 148.20.20.6 \\
+\hline
+R1--R2 & 148.20.20.8/30 & R1: 148.20.20.9 & R2: 148.20.20.10 \\
+\hline
+R3--R4 & 201.30.21.0/30 & R4: 201.30.21.1 & R3: 201.30.21.2 \\
+\hline
+\end{tabular}
+\caption{Direccionamiento de los enlaces seriales.}
+\end{table}
+
+\section{Configuración del enrutamiento OSPF}
+
+\subsection{Identificadores de router}
+
+Se utilizaron los siguientes identificadores para el proceso OSPF:
+
+\begin{itemize}
+    \item R1: \texttt{1.1.1.1}.
+    \item R2: \texttt{2.2.2.2}.
+    \item R3: \texttt{3.3.3.3}.
+\end{itemize}
+
+El proceso OSPF se configuró con el identificador local 1 y el
+área 0. Los comandos de referencia para anunciar las redes internas
+son los siguientes.
+
+\subsection{Configuración de R1}
+
+\begin{lstlisting}
+enable
+configure terminal
+router ospf 1
+ router-id 1.1.1.1
+ network 148.20.0.0 0.0.0.255 area 0
+ network 148.20.1.0 0.0.0.255 area 0
+ network 148.20.20.4 0.0.0.3 area 0
+ network 148.20.20.8 0.0.0.3 area 0
+end
+\end{lstlisting}
+
+\subsection{Configuración de R2}
+
+\begin{lstlisting}
+enable
+configure terminal
+router ospf 1
+ router-id 2.2.2.2
+ network 148.20.15.0 0.0.0.255 area 0
+ network 148.20.20.0 0.0.0.3 area 0
+ network 148.20.20.8 0.0.0.3 area 0
+end
+\end{lstlisting}
+
+\subsection{Configuración de R3}
+
+\begin{lstlisting}
+enable
+configure terminal
+router ospf 1
+ router-id 3.3.3.3
+ network 148.20.16.0 0.0.0.255 area 0
+ network 148.20.20.0 0.0.0.3 area 0
+ network 148.20.20.4 0.0.0.3 area 0
+end
+\end{lstlisting}
+
+Las sentencias \texttt{network} utilizan máscaras wildcard. Por
+ejemplo, \texttt{0.0.0.255} corresponde a una red /24, mientras
+que \texttt{0.0.0.3} corresponde a una red /30.
+
+Es importante destacar que estas sentencias seleccionan las
+interfaces que participarán en OSPF según sus direcciones IP.
+En la configuración implementada, el enlace entre R3 y R4 se
+mantuvo fuera del proceso OSPF.
+
+\subsection{Ruta predeterminada hacia la red externa}
+
+R3 se configuró para enviar hacia R4 el tráfico que no tuviera
+una ruta más específica en su tabla de enrutamiento. La ruta
+predeterminada se configuró con el siguiente comando:
+
+\begin{lstlisting}
+ip route 0.0.0.0 0.0.0.0 201.30.21.1
+\end{lstlisting}
+
+Para anunciar esta ruta al dominio OSPF interno se utilizó:
+
+\begin{lstlisting}
+router ospf 1
+ default-information originate
+\end{lstlisting}
+
+En R4 se configuró una ruta de retorno hacia la red empresarial:
+
+\begin{lstlisting}
+ip route 148.20.0.0 255.255.0.0 201.30.21.2
+\end{lstlisting}
+
+\section{Configuración de SSH}
+
+\subsection{Propósito}
+
+SSH (\textit{Secure Shell}) permite administrar los routers
+remotamente mediante una conexión cifrada. En esta práctica se
+habilitó el acceso SSH en R1, R2 y R3 para posteriormente controlar
+qué equipo externo podía iniciar una sesión.
+
+La configuración de referencia fue la siguiente:
+
+\begin{lstlisting}
+configure terminal
+ip domain-name empresa.local
+username admin privilege 15 secret ClaveSegura123
+crypto key generate rsa
+ip ssh version 2
+line vty 0 4
+ login local
+ transport input ssh
+end
+\end{lstlisting}
+
+El comando de generación de claves RSA puede solicitar el tamaño
+del módulo. Se debe utilizar un tamaño admitido por la versión
+de IOS simulada; cuando está disponible, es preferible utilizar
+un módulo de 2048 bits o superior.
+
+La instrucción \texttt{login local} indica que la autenticación
+se realiza con la base de usuarios local del router. La instrucción
+\texttt{transport input ssh} limita las conexiones VTY entrantes
+a SSH, en lugar de permitir Telnet.
+
+\subsection{Pruebas de acceso remoto}
+
+Desde PCEXT se puede probar la conexión con las direcciones
+de las interfaces LAN de los routers:
+
+\begin{lstlisting}
+ssh -l admin 148.20.0.1
+ssh -l admin 148.20.15.1
+ssh -l admin 148.20.16.1
+\end{lstlisting}
+
+En el entorno configurado, las credenciales locales utilizadas
+fueron:
+
+\begin{itemize}
+    \item Usuario: \texttt{admin}.
+    \item Contraseña: \texttt{ClaveSegura123}.
+\end{itemize}
+
+Las credenciales deben tratarse como información sensible y
+no reutilizarse en redes reales sin cambiarlas por contraseñas
+adecuadas. En un entorno productivo también conviene aplicar
+mecanismos de autenticación y control de acceso más robustos.
+
+\captura{ssh.png}
+{Prueba de acceso SSH desde PCEXT hacia los routers.}
+
+\section{Servicios habilitados en los servidores}
+
+Se habilitaron los servicios necesarios para probar las políticas
+de acceso en los servidores internos.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Servidor} & \textbf{Dirección IP} & \textbf{Servicios considerados} \\
+\hline
+Serv1 & 148.20.15.10 & HTTP, HTTPS y FTP \\
+\hline
+Serv2 & 148.20.15.11 & HTTP, HTTPS y FTP \\
+\hline
+Serv3 & 148.20.15.12 & HTTP, HTTPS y FTP \\
+\hline
+ServE & 201.30.20.100 & HTTP y HTTPS \\
+\hline
+\end{tabular}
+\caption{Servicios habilitados para las pruebas.}
+\end{table}
+
+La disponibilidad de un servicio en el servidor es distinta
+de su autorización a través de la red. Por ejemplo, aunque HTTP
+esté habilitado en ServE, una ACL puede impedir que los equipos
+empresariales establezcan conexiones HTTP con ese servidor.
+
+\section{Políticas de seguridad}
+
+Las políticas de la práctica se resumen en la siguiente tabla.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|p{3.1cm}|p{8.8cm}|}
+\hline
+\textbf{Origen} & \textbf{Política de acceso} \\
+\hline
+Red empresarial & Puede acceder a la red externa mediante HTTPS,
+pero no mediante HTTP. \\
+\hline
+Red empresarial & Puede enviar solicitudes ICMP de tipo echo
+(\texttt{ping}) hacia la red externa. \\
+\hline
+Red externa & No puede iniciar solicitudes \texttt{ping} hacia
+la red empresarial. \\
+\hline
+PCEXT & Puede establecer conexiones SSH autorizadas hacia R1,
+R2 y R3. \\
+\hline
+Otros equipos externos & No deben poder iniciar conexiones SSH
+a los routers protegidos. \\
+\hline
+Red externa & Solo puede acceder a Serv2 y Serv3 mediante HTTPS
+y FTP. \\
+\hline
+RedA y RedB & Pueden acceder a Serv1 y Serv2 mediante HTTPS y FTP. \\
+\hline
+RedA y RedB & Pueden acceder a Serv3 mediante FTP, pero no mediante
+otros protocolos de aplicación no autorizados. \\
+\hline
+Red de administración & Puede acceder a todos los servidores mediante
+los protocolos contemplados en la política. \\
+\hline
+Redes internas & Se permite la comunicación ICMP entre equipos
+empresariales, de acuerdo con el requisito de conectividad interna. \\
+\hline
+\end{tabular}
+\caption{Resumen de las políticas de filtrado.}
+\end{table}
+
+\section{Configuración de las ACL extendidas}
+
+\subsection{ACL de acceso a los servidores en R2}
+
+Se utilizó una ACL extendida llamada \texttt{SERVERS-IN} para
+controlar el tráfico que sale de R2 hacia la red de servidores.
+La lista se aplicó en dirección de salida sobre la interfaz
+GigabitEthernet0/0/0, conectada a dicha red.
+
+La siguiente configuración reúne las reglas correspondientes
+a las políticas definidas:
+
+\begin{lstlisting}
+configure terminal
+ip access-list extended SERVERS-IN
+
+! Red de administracion: acceso a todos los servidores
+permit ip 148.20.16.0 0.0.0.255 148.20.15.0 0.0.0.255
+
+! RedA: HTTPS y FTP hacia Serv1
+permit tcp 148.20.0.0 0.0.0.255 host 148.20.15.10 eq 443
+permit tcp 148.20.0.0 0.0.0.255 host 148.20.15.10 eq 21
+
+! RedA: HTTPS y FTP hacia Serv2
+permit tcp 148.20.0.0 0.0.0.255 host 148.20.15.11 eq 443
+permit tcp 148.20.0.0 0.0.0.255 host 148.20.15.11 eq 21
+
+! RedA: solamente FTP hacia Serv3
+permit tcp 148.20.0.0 0.0.0.255 host 148.20.15.12 eq 21
+
+! RedB: HTTPS y FTP hacia Serv1
+permit tcp 148.20.1.0 0.0.0.255 host 148.20.15.10 eq 443
+permit tcp 148.20.1.0 0.0.0.255 host 148.20.15.10 eq 21
+
+! RedB: HTTPS y FTP hacia Serv2
+permit tcp 148.20.1.0 0.0.0.255 host 148.20.15.11 eq 443
+permit tcp 148.20.1.0 0.0.0.255 host 148.20.15.11 eq 21
+
+! RedB: solamente FTP hacia Serv3
+permit tcp 148.20.1.0 0.0.0.255 host 148.20.15.12 eq 21
+
+! Red externa: HTTPS y FTP hacia Serv2
+permit tcp 201.30.20.0 0.0.0.255 host 148.20.15.11 eq 443
+permit tcp 201.30.20.0 0.0.0.255 host 148.20.15.11 eq 21
+
+! Red externa: HTTPS y FTP hacia Serv3
+permit tcp 201.30.20.0 0.0.0.255 host 148.20.15.12 eq 443
+permit tcp 201.30.20.0 0.0.0.255 host 148.20.15.12 eq 21
+
+! Bloqueo del resto del trafico hacia los servidores
+deny ip any 148.20.15.0 0.0.0.255
+end
+\end{lstlisting}
+
+La ACL se aplicó de la siguiente manera:
+
+\begin{lstlisting}
+configure terminal
+interface GigabitEthernet0/0/0
+ ip access-group SERVERS-IN out
+end
+\end{lstlisting}
+
+La dirección \texttt{out} hace que la lista evalúe los paquetes
+que R2 envía por la interfaz hacia los servidores. Los paquetes
+de respuesta de los servidores ingresan por esa interfaz y,
+por tanto, no se evalúan con esta misma ACL de salida.
+
+La regla de denegación general se coloca al final para impedir
+que otros protocolos o destinos de la red de servidores sean
+accesibles por coincidencia con una regla más general.
+
+La regla de administración permite todo el tráfico IP entre
+la red de administración y la red de servidores. Por ello,
+las reglas específicas posteriores para RedA, RedB y la red
+externa no amplían los permisos de administración: esa excepción
+ya se concede mediante la primera regla.
+
+\subsection{ACL de tráfico externo en R3}
+
+En R3 se configuró una ACL extendida llamada \texttt{EXTERNAL-IN},
+aplicada en entrada sobre la interfaz serial que conecta con R4.
+Su finalidad es evaluar el tráfico procedente de la red externa
+antes de que se dirija hacia la infraestructura empresarial.
+
+La configuración utilizada fue:
+
+\begin{lstlisting}
+configure terminal
+ip access-list extended EXTERNAL-IN
+
+! SSH desde PCEXT hacia direcciones de la infraestructura
+permit tcp host 201.30.20.200 host 148.20.0.1 eq 22
+permit tcp host 201.30.20.200 host 148.20.1.1 eq 22
+permit tcp host 201.30.20.200 host 148.20.20.9 eq 22
+permit tcp host 201.30.20.200 host 148.20.20.5 eq 22
+permit tcp host 201.30.20.200 host 148.20.15.1 eq 22
+permit tcp host 201.30.20.200 host 148.20.20.10 eq 22
+permit tcp host 201.30.20.200 host 148.20.20.1 eq 22
+permit tcp host 201.30.20.200 host 148.20.16.1 eq 22
+permit tcp host 201.30.20.200 host 148.20.20.6 eq 22
+permit tcp host 201.30.20.200 host 148.20.20.2 eq 22
+permit tcp host 201.30.20.200 host 201.30.21.2 eq 22
+
+! HTTPS y FTP externos hacia Serv2 y Serv3
+permit tcp 201.30.20.0 0.0.0.255 host 148.20.15.11 eq 443
+permit tcp 201.30.20.0 0.0.0.255 host 148.20.15.11 eq 21
+permit tcp 201.30.20.0 0.0.0.255 host 148.20.15.12 eq 443
+permit tcp 201.30.20.0 0.0.0.255 host 148.20.15.12 eq 21
+
+! Respuestas de conexiones TCP iniciadas desde la empresa
+permit tcp 201.30.20.0 0.0.0.255 eq 443 148.20.0.0 0.0.255.255 established
+permit tcp 201.30.20.0 0.0.0.255 148.20.0.0 0.0.255.255 established
+
+! Permitir respuestas a ping originados en la empresa
+permit icmp 201.30.20.0 0.0.0.255 148.20.0.0 0.0.255.255 echo-reply
+
+! Bloquear ping iniciado desde la red externa
+deny icmp any 148.20.0.0 0.0.255.255 echo
+
+! Bloquear el resto del trafico dirigido a la empresa
+deny ip any 148.20.0.0 0.0.255.255
+permit ip any any
+end
+\end{lstlisting}
+
+La ACL se aplicó en la interfaz serial correspondiente:
+
+\begin{lstlisting}
+configure terminal
+interface Serial0/1/1
+ ip access-group EXTERNAL-IN in
+end
+\end{lstlisting}
+
+\subsection{ACL de tráfico empresarial hacia la red externa}
+
+Para controlar las conexiones que salen de la empresa hacia
+la red externa se utilizó \texttt{EXTERNAL-OUT}. La lista permite
+HTTPS, bloquea HTTP y permite solicitudes ICMP de tipo echo.
+
+\begin{lstlisting}
+configure terminal
+ip access-list extended EXTERNAL-OUT
+
+! Permitir HTTPS desde la empresa hacia la red externa
+permit tcp 148.20.0.0 0.0.255.255 201.30.20.0 0.0.0.255 eq 443
+
+! Bloquear HTTP desde la empresa hacia la red externa
+deny tcp 148.20.0.0 0.0.255.255 201.30.20.0 0.0.0.255 eq 80
+
+! Permitir ping iniciado desde la empresa
+permit icmp 148.20.0.0 0.0.255.255 201.30.20.0 0.0.0.255 echo
+
+! Permitir el resto del trafico no restringido por las reglas anteriores
+permit ip any any
+end
+\end{lstlisting}
+
+La ACL se aplicó en dirección de salida sobre el enlace de R3 hacia
+R4:
+
+\begin{lstlisting}
+configure terminal
+interface Serial0/1/1
+ ip access-group EXTERNAL-OUT out
+end
+\end{lstlisting}
+
+Las dos ACL de R3 tienen funciones diferentes: \texttt{EXTERNAL-IN}
+filtra paquetes que llegan desde R4, mientras que
+\texttt{EXTERNAL-OUT} filtra paquetes que R3 envía hacia R4.
+Aplicarlas en ambas direcciones permite tratar por separado
+el tráfico de entrada y el de salida.
+
+\subsection{Consideraciones sobre el orden de las reglas}
+
+El orden de las entradas de una ACL determina el resultado
+del filtrado. Una regla general colocada antes de una excepción
+puede impedir que esa excepción llegue a evaluarse.
+
+En particular, la ACL \texttt{EXTERNAL-IN} debe revisarse para
+asegurar que ningún equipo externo distinto de PCEXT pueda
+iniciar conexiones SSH hacia direcciones de administración
+de los routers. La lista contiene permisos explícitos para
+PCEXT, pero el permiso final \texttt{permit ip any any} también
+puede admitir tráfico dirigido a direcciones que no coincidan
+con la denegación de la red 148.20.0.0/16.
+
+Para reforzar esa política, después de las excepciones SSH
+autorizadas y antes del permiso final se debe incluir:
+
+\begin{lstlisting}
+ip access-list extended EXTERNAL-IN
+ deny tcp any any eq 22
+\end{lstlisting}
+
+Este ajuste debe realizarse conservando el orden de las reglas:
+primero los permisos SSH específicos para PCEXT, después la
+denegación de los demás intentos SSH y, finalmente, las reglas
+restantes que deban permitirse. En IOS, conviene verificar el
+orden efectivo con \texttt{show access-lists}; si es necesario,
+se puede reconstruir la ACL para garantizar la posición correcta.
+
+\section{Verificación de las ACL}
+
+\subsection{Comprovación}
+
+\captura{access-listR2.png}
+{Salida del comando \texttt{show access-lists} en R2.}
+
+\captura{access-listR3.png}
+{Salida del comando \texttt{show access-lists} en R3.}
+
+\section{Pruebas HTTP y HTTPS}
+
+Desde una PC de RedA o RedB se debe intentar acceder al servidor
+externo ServE mediante HTTP y HTTPS.
+
+HTTP hacia \texttt{http://201.30.20.100} debe ser bloqueado por la política empresarial.
+\captura{http.png}
+{http es bloqueado}
+    
+HTTPS hacia \texttt{https://201.30.20.100} debe ser permitido por la política de salida.
+\captura{https.png}
+{https es permitido}
+
+Para interpretar el resultado, se debe verificar que los servicios
+HTTP y HTTPS estén habilitados en ServE. Si Packet Tracer no
+permite completar una sesión HTTPS en el navegador simulado,
+se deben revisar los servicios disponibles en esa versión y
+complementar la prueba con los contadores de la ACL.
+
+\subsection{Pruebas de conectividad}
+
+\captura{pings.png}
+{pings corresponden con lo estipulado por las políticas de seguridad}
+
+\section{Conclusiones}
+
+En esta práctica se trabajó con una infraestructura de red
+empresarial compuesta por varias redes LAN y enlaces entre
+routers. El direccionamiento IPv4 permitió identificar las
+redes de usuarios, servidores, administración y la red externa.
+
+OSPF se utilizó para intercambiar rutas entre los routers
+internos, mientras que una ruta predeterminada en R3 permitió
+dirigir el tráfico externo hacia R4. En el router de salida
+también se contempló una ruta de retorno hacia las redes
+empresariales.
+
+La configuración de SSH permitió plantear un mecanismo de
+administración remota cifrada. A través de las ACL extendidas
+se definieron permisos y restricciones por dirección IP,
+protocolo y puerto. Estas reglas permiten expresar políticas
+específicas para HTTPS, HTTP, FTP, ICMP y SSH.
+
+La práctica demuestra que el enrutamiento y la seguridad cumplen
+funciones diferentes. OSPF determina cómo alcanzar una red,
+mientras que las ACL establecen qué tráfico se autoriza a
+pasar por las interfaces donde están aplicadas.
+
+Finalmente, se identificó la importancia de validar el orden
+de las reglas, el sentido de aplicación de cada ACL y la
+configuración de los servicios. La revisión de contadores,
+tablas de enrutamiento y pruebas desde los equipos finales
+permite distinguir los problemas de conectividad de los
+bloqueos deliberados.
+
+\end{document}

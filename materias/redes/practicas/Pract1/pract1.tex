@@ -1,0 +1,329 @@
+\documentclass[12pt,a4paper]{article}
+
+% ------------------------------------------------
+% Paquetes
+% ------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot]{babel}
+\usepackage{geometry}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{listings}
+\usepackage{tcolorbox}
+\usepackage{tabularx}
+
+\geometry{margin=2.25cm}
+\hypersetup{colorlinks=true,linkcolor=blue!45!black,urlcolor=blue!55!black,
+ pdftitle={Práctica semanal 01: auditoría y endurecimiento de una red de sucursal},
+ pdfauthor={Laboratorio de prácticas de ingeniería de redes}}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Prácticas profesionales -- Redes}
+\rhead{Semana 01}
+\cfoot{\thepage}
+\setlength{\headheight}{15pt}
+\setlength{\parskip}{0.4em}
+\setlength{\parindent}{0pt}
+
+\definecolor{azul}{RGB}{25,70,115}
+\definecolor{grisfondo}{RGB}{245,247,249}
+\definecolor{rojo}{RGB}{145,35,35}
+\titleformat{\section}{\Large\bfseries\color{azul}}{\thesection.}{0.6em}{}
+\titleformat{\subsection}{\large\bfseries\color{azul}}{\thesubsection}{0.6em}{}
+
+\lstdefinestyle{ios}{basicstyle=\ttfamily\small,backgroundcolor=\color{grisfondo},
+ frame=single,rulecolor=\color{black!20},breaklines=true,columns=fullflexible,
+ keepspaces=true,showstringspaces=false}
+\lstset{style=ios}
+\newtcolorbox{alerta}{colback=red!4,colframe=red!45!black,title=Importante,fonttitle=\bfseries}
+\newtcolorbox{entrega}{colback=blue!3,colframe=azul,title=Entregables,fonttitle=\bfseries}
+
+\begin{document}
+
+\begin{titlepage}
+\centering
+\vspace*{1.3cm}
+{\Large\textsc{Programa de prácticas profesionales}\par}
+\vspace{0.8cm}
+{\huge\bfseries Auditoría, segmentación y endurecimiento de una red de sucursal\par}
+\vspace{0.5cm}
+{\Large Semana 01 -- Diagnóstico y corrección de una red heredada\par}
+\vspace{1.5cm}
+\begin{tabular}{rl}
+\textbf{Área:} & Infraestructura y comunicaciones \\
+\textbf{Entorno:} & Cisco Packet Tracer \\
+\textbf{Nivel:} & Intermedio inicial \\
+\textbf{Tiempo estimado:} & 4--6 horas \\
+\textbf{Modalidad:} & Individual \\
+\end{tabular}
+\vfill
+\begin{tcolorbox}[width=0.9\textwidth,colback=grisfondo,colframe=black!30]
+\textbf{Tu rol:} eres el ingeniero de redes en prácticas asignado a revisar una sucursal que presenta fallos intermitentes y controles de seguridad inconsistentes. No debes asumir que la configuración existente es correcta: primero recopila evidencia, identifica riesgos, plantea cambios y valida cada resultado.
+\end{tcolorbox}
+\vfill
+{\large Documento de trabajo -- No contiene la configuración de solución\par}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+\section{Contexto de la organización}
+
+La empresa ficticia \textbf{NorteLogística} opera una sucursal administrativa y de almacén. La red fue ampliada por distintos técnicos durante varios meses; parte de la configuración está documentada, pero no existe un inventario confiable de cambios. La empresa no puede detener toda la operación durante el diagnóstico.
+
+Actualmente se reportan los siguientes síntomas:
+\begin{itemize}[leftmargin=1.2cm]
+ \item Algunos equipos reciben direcciones IP, pero no todos pueden acceder a los servicios internos.
+ \item El personal de administración puede llegar a servidores que no necesita utilizar.
+ \item El equipo de soporte desconoce qué ocurrirá si falla la puerta de enlace principal.
+ \item Se encontró un puerto de switch activo en una zona de visitantes.
+ \item Algunos dispositivos de red todavía aceptan administración mediante Telnet.
+ \item Se sospecha que un enlace entre switches transporta VLAN innecesarias.
+\end{itemize}
+
+La dirección solicita restaurar la conectividad requerida sin permitir acceso indiscriminado entre áreas. Los cambios deben ser verificables y reversibles. No se autoriza conectar esta práctica a una red real ni utilizar credenciales reales.
+
+\subsection{Áreas y requisitos del negocio}
+\begin{longtable}{p{2.6cm}p{3.4cm}p{7.0cm}}
+\toprule
+\textbf{Área} & \textbf{VLAN / subred} & \textbf{Necesidades y restricciones} \\
+\midrule
+Administración & VLAN 10 -- 192.168.10.0/24 & Acceso a DNS y a la aplicación interna HTTPS. Puede usar ping para diagnosticar interfaces de red, pero no necesita iniciar sesiones HTTP hacia los servidores. \\
+Operaciones & VLAN 20 -- 192.168.20.0/24 & Acceso a DNS, DHCP y aplicación interna HTTPS. No debe acceder a la VLAN de administración. \\
+Invitados & VLAN 30 -- 192.168.30.0/24 & Debe recibir direccionamiento dinámico. No debe acceder a las redes privadas internas de la empresa. No es necesario simular Internet real. \\
+Servidores & VLAN 40 -- 192.168.40.0/24 & Aloja el servidor DNS y el servidor web de prueba. Solo estarán disponibles los servicios expresamente requeridos. \\
+Gestión de red & VLAN 99 -- 192.168.99.0/24 & Acceso de administración restringido al equipo de soporte. No se debe permitir Telnet. \\
+\bottomrule
+\end{longtable}
+
+\section{Topología y alcance}
+
+Construye la topología en Packet Tracer con dos switches multicapa compatibles con SVI, HSRP y routing, dos switches de acceso, dos routers y dos servidores. Puedes usar switches 3560 para distribución y 2960 para acceso, o modelos equivalentes que existan en tu versión. Si un modelo no soporta una función, documenta la limitación y selecciona un modelo compatible del simulador.
+
+\begin{center}
+\begin{tcolorbox}[width=0.94\textwidth,colback=grisfondo,colframe=black!30]
+\centering
+\textbf{PC-ADM} (VLAN 10) \quad \textbf{PC-OPS} (VLAN 20) \quad \textbf{PC-GUEST} (VLAN 30)\\[0.25cm]
+\(\downarrow\) \hspace{2.4cm} \(\downarrow\) \hspace{2.4cm} \(\downarrow\)\\[0.2cm]
+\textbf{SW-ACC1} \hspace{3.0cm} \textbf{SW-ACC2}\\[0.25cm]
+{\small Enlaces trunk hacia ambos switches de distribución}\\[0.2cm]
+\textbf{DIST1} \(\Longleftrightarrow\) \textbf{DIST2}\\
+\small EtherChannel con LACP entre los switches de distribución\\[0.25cm]
+\textbf{DIST1 / DIST2:} SVIs, HSRP y routing entre VLAN\\[0.25cm]
+\textbf{DIST1} \(\longrightarrow\) \textbf{R-EDGE} \(\longleftrightarrow\) \textbf{R-ISP-SIM}\\
+\small Enlace de tránsito para practicar OSPF\\[0.25cm]
+\textbf{Servidor DNS} y \textbf{Servidor WEB} conectados a VLAN 40.
+\end{tcolorbox}
+\end{center}
+
+El diagrama es lógico y no asigna números de interfaz. Selecciona puertos, registra la asignación y mantenla consistente. No conectes enlaces paralelos entre switches sin configurar correctamente EtherChannel o sin entender cómo STP tratará los enlaces.
+
+\subsection{Plan de direccionamiento previsto}
+\begin{longtable}{p{3.1cm}p{3.0cm}p{6.9cm}}
+\toprule
+\textbf{Elemento} & \textbf{Dirección / red} & \textbf{Observaciones} \\
+\midrule
+VLAN 10 & 192.168.10.0/24 & Gateway virtual sugerido: 192.168.10.1 \\
+VLAN 20 & 192.168.20.0/24 & Gateway virtual sugerido: 192.168.20.1 \\
+VLAN 30 & 192.168.30.0/24 & Gateway virtual sugerido: 192.168.30.1 \\
+VLAN 40 & 192.168.40.0/24 & Gateway virtual sugerido: 192.168.40.1 \\
+VLAN 99 & 192.168.99.0/24 & Gateway virtual sugerido: 192.168.99.1 \\
+Servidor DNS & 192.168.40.10/24 & Nombre de prueba: \texttt{dns.nortelogistica.test} \\
+Servidor WEB & 192.168.40.20/24 & Nombre de prueba: \texttt{portal.nortelogistica.test} \\
+Enlace de tránsito & 10.0.0.0/30 & Entre R-EDGE y R-ISP-SIM \\
+\bottomrule
+\end{longtable}
+
+Define y documenta las direcciones físicas de los switches de distribución, los gateways virtuales HSRP, los enlaces de Capa 3 y las direcciones de gestión de los switches de acceso. Reserva direcciones fuera de los rangos DHCP para gateways, servidores e infraestructura. Decide rangos DHCP razonables para las VLAN de usuarios y justifica las exclusiones.
+
+\subsection{Estado inicial de la práctica}
+No se proporciona un archivo \texttt{.pkt} inicial: debes construir la topología y preparar un estado de trabajo que represente una red heredada. Para simular el relevo de otro técnico, deja inicialmente sin implementar las políticas de seguridad y los servicios que se describen en las órdenes de trabajo. Además, incorpora al menos cuatro anomalías controladas en tu estado inicial, seleccionadas de esta lista:
+\begin{itemize}[leftmargin=1.2cm]
+ \item Un puerto de usuario asignado a una VLAN equivocada.
+ \item Un trunk que no permite una de las VLAN requeridas.
+ \item Un ámbito DHCP con gateway o DNS incorrecto.
+ \item Una ACL que bloquea HTTPS requerido o permite tráfico innecesario.
+ \item Una línea VTY que todavía acepta Telnet.
+ \item Un puerto de usuario sin Port Security.
+ \item Un EtherChannel con parámetros incompatibles en un extremo.
+ \item Una configuración HSRP sin el comportamiento de recuperación que necesita el negocio.
+\end{itemize}
+Anota en privado qué anomalías sembraste para poder confirmar después si las detectaste todas. No las corrijas al construir el estado inicial: primero completa el inventario y las pruebas de diagnóstico. El informe debe distinguir entre un fallo que observaste y uno que solo suponías.
+
+\section{Fase 1 -- Inspección antes de modificar}
+
+Antes de configurar, realiza un inventario de dispositivos y enlaces. En cada equipo, utiliza los comandos de inspección aplicables. Algunos ejemplos:
+\begin{lstlisting}
+show running-config
+show startup-config
+show ip interface brief
+show interfaces status
+show vlan brief
+show interfaces trunk
+show etherchannel summary
+show spanning-tree
+show ip route
+show ip ospf neighbor
+show standby brief
+show access-lists
+show port-security
+show logging
+\end{lstlisting}
+
+No todos los comandos aplican a todos los dispositivos. Registra cuáles están disponibles y cuáles no.
+\begin{enumerate}[leftmargin=1.2cm]
+ \item Identifica interfaces conectadas, su estado y el tipo de enlace.
+ \item Comprueba qué VLAN existen y cuáles están permitidas por cada trunk.
+ \item Determina si EtherChannel está agregado y qué protocolo utiliza.
+ \item Identifica las puertas de enlace configuradas en los clientes y el estado de HSRP.
+ \item Comprueba las rutas instaladas y el estado de OSPF, si existe.
+ \item Revisa las ACL en orden y determina qué tráfico permiten o bloquean.
+ \item Revisa si los puertos de usuario tienen Port Security y si la administración remota usa SSH.
+\end{enumerate}
+
+\textbf{Resultado esperado:} una tabla de hallazgos con al menos cinco observaciones, respaldadas por salidas de comandos, pruebas o capturas. Guarda tu diagnóstico inicial antes de modificar la configuración.
+
+\section{Fase 2 -- Diseñar antes de configurar}
+
+Prepara los siguientes artefactos:
+\begin{enumerate}[leftmargin=1.2cm]
+ \item Una tabla puerto--dispositivo--VLAN--modo (access, trunk o routed).
+ \item Una tabla de direccionamiento con IP, máscara, gateway, DNS y asignación estática o dinámica.
+ \item Una matriz de políticas con origen, destino, protocolo/puerto, acción y justificación.
+ \item Una lista de cambios ordenados por riesgo, con un procedimiento de reversión para cada cambio importante.
+\end{enumerate}
+
+No basta con escribir «configurar ACL». Describe qué comunicaciones necesita cada área y cuáles deben estar prohibidas.
+
+\section{Fase 3 -- Switching y segmentación}
+\begin{enumerate}[leftmargin=1.2cm]
+ \item Crea las VLAN 10, 20, 30, 40 y 99 donde corresponda.
+ \item Asigna los puertos de usuario a la VLAN adecuada en modo access.
+ \item Configura los trunks entre acceso y distribución, limitando las VLAN permitidas a las necesarias.
+ \item Configura un EtherChannel entre DIST1 y DIST2 mediante LACP. Verifica que los parámetros de ambos extremos sean compatibles.
+ \item Configura PortFast y BPDU Guard únicamente en puertos de borde que conecten dispositivos finales.
+ \item Apaga los puertos sin uso y asígnalos a una VLAN aislada si el modelo lo permite.
+\end{enumerate}
+
+\section{Fase 4 -- Routing, DHCP y DNS}
+\begin{enumerate}[leftmargin=1.2cm]
+ \item Configura las interfaces VLAN (SVI) y el routing entre VLAN en los switches multicapa.
+ \item Configura HSRP en DIST1 y DIST2 para las VLAN que requieran gateway redundante. Define prioridades y decide si usarás \texttt{preempt}; justifica el comportamiento de recuperación.
+ \item Configura el enlace de Capa 3 entre R-EDGE y R-ISP-SIM, asigna las direcciones del segmento de tránsito y establece OSPF para intercambiar las rutas previstas.
+ \item Decide dónde se alojará DHCP. Si el servidor DHCP está en otra subred, configura el relay que soporte el equipo y explica en qué interfaz debe operar.
+ \item Configura ámbitos DHCP para las VLAN de usuarios. Excluye direcciones reservadas y entrega gateway y DNS correctos.
+ \item Configura DNS con un registro que resuelva \texttt{portal.nortelogistica.test} a la IP del servidor web.
+ \item Habilita el servicio HTTP/HTTPS de prueba disponible en Packet Tracer y comprueba el acceso mediante nombre DNS, no solo por IP.
+\end{enumerate}
+
+R-ISP-SIM representa una red externa simulada; no se necesita conectividad real a Internet.
+
+\section{Fase 5 -- Seguridad}
+\begin{enumerate}[leftmargin=1.2cm]
+ \item Configura Port Security en puertos de usuario. Define máximo de MAC, método de aprendizaje y modo de violación. Registra qué sucede al conectar una MAC no autorizada.
+ \item Configura acceso remoto por SSH y deshabilita Telnet en las líneas VTY de los equipos que lo soporten.
+ \item Restringe la administración a la VLAN 99 o a los equipos autorizados dentro de ella. Evita bloquear tu propio acceso.
+ \item Diseña e implementa ACL extendidas para que Administración y Operaciones solo usen los servicios internos necesarios.
+ \item Impide que Invitados inicie comunicaciones hacia las redes privadas internas.
+ \item Conserva únicamente las excepciones necesarias para DHCP, DNS, HTTPS y las pruebas de diagnóstico autorizadas.
+ \item Si Packet Tracer lo permite, investiga DHCP Snooping y Dynamic ARP Inspection. Documenta los puertos confiables/no confiables y prueba el comportamiento.
+\end{enumerate}
+
+\begin{alerta}
+Las ACL IPv4 se evalúan en orden, de arriba hacia abajo, y terminan en una denegación implícita. Una regla general de permiso antes de una denegación específica puede volver ineficaz la política. Verifica el orden, la interfaz y la dirección (\texttt{in}/\texttt{out}) donde aplicas cada ACL.
+\end{alerta}
+
+\section{Plan de pruebas obligatorio}
+
+No declares terminada la práctica únicamente porque los comandos se hayan aceptado. Registra el resultado esperado, el observado y la evidencia de cada prueba.
+\begin{longtable}{p{0.6cm}p{5.1cm}p{4.2cm}p{3.0cm}}
+\toprule
+\textbf{\#} & \textbf{Prueba} & \textbf{Resultado esperado} & \textbf{Evidencia} \\
+\midrule
+1 & Consultar VLAN y trunks en cada switch. & VLAN correctas y trunks con la lista prevista. & Comandos \texttt{show}. \\
+2 & Revisar EtherChannel en ambos extremos. & Canal operativo y puertos miembros agregados. & \texttt{show etherchannel summary}. \\
+3 & Obtener IP por DHCP en PC-ADM, PC-OPS y PC-GUEST. & IP, máscara, gateway y DNS del ámbito correcto. & \texttt{ipconfig}. \\
+4 & Hacer ping al gateway virtual desde cada VLAN. & Respuesta cuando la política lo permite. & Captura de resultado. \\
+5 & Resolver \texttt{portal.nortelogistica.test}. & Devuelve la IP del servidor web. & \texttt{nslookup} si está disponible o prueba DNS en PT. \\
+6 & Abrir el portal por nombre DNS desde Administración y Operaciones. & HTTPS permitido según política. & Navegador y prueba de conectividad. \\
+7 & Intentar HTTP hacia el portal desde VLAN internas. & Bloqueado si no está autorizado expresamente. & Navegador, ACL y contadores. \\
+8 & Desde Invitados, intentar acceder a DNS y servidor web internos. & Solo servicios explícitamente autorizados deben funcionar. & Pruebas DNS, HTTP/HTTPS y ping. \\
+9 & Probar conectividad entre Administración y Operaciones. & No hay acceso indiscriminado entre VLAN. & Pings y pruebas de aplicación. \\
+10 & Verificar OSPF y rutas aprendidas. & Adyacencia y rutas esperadas. & \texttt{show ip ospf neighbor}, \texttt{show ip route}. \\
+11 & Apagar temporalmente la interfaz o equipo HSRP activo. & El otro equipo asume el rol activo y se recupera conectividad. & \texttt{show standby brief}. \\
+12 & Restaurar el equipo principal. & El rol activo coincide con la política de prioridad/preemption. & Estado HSRP antes y después. \\
+13 & Conectar una MAC distinta a un puerto protegido. & Se ejecuta la acción de violación configurada. & \texttt{show port-security interface}. \\
+14 & Probar SSH desde un host autorizado y Telnet. & SSH funciona; Telnet se rechaza. & Cliente SSH/Telnet y VTY. \\
+15 & Intentar administrar desde un host no autorizado. & Se rechaza administración sin afectar servicios legítimos. & Prueba y ACL. \\
+16 & Revisar registros y contadores de ACL. & Pruebas reflejadas en contadores o registros disponibles. & \texttt{show access-lists}, \texttt{show logging}. \\
+\bottomrule
+\end{longtable}
+
+Algunas versiones de Packet Tracer no implementan todas las funciones de equipos reales ni muestran los mismos contadores. Si una prueba no es viable, anota la limitación concreta y cómo la comprobarías en hardware real. No declares exitosa una prueba que no pudiste ejecutar.
+
+\section{Criterios de aceptación}
+La práctica se considera terminada cuando:
+\begin{itemize}[leftmargin=1.2cm]
+ \item Las VLAN y trunks coinciden con el diseño y no transportan VLAN innecesarias.
+ \item EtherChannel funciona como enlace lógico y no provoca bucles.
+ \item Los clientes reciben direccionamiento correcto y resuelven el nombre DNS del portal.
+ \item OSPF aprende las rutas previstas.
+ \item HSRP proporciona redundancia y la recuperación coincide con la política definida.
+ \item Las ACL permiten flujos necesarios y bloquean los no autorizados.
+ \item Port Security y SSH funcionan según la configuración.
+ \item Se ejecutaron las pruebas y se registraron éxitos y fallos.
+ \item La configuración final está guardada y el informe documenta las limitaciones del simulador.
+\end{itemize}
+
+\section{Entregables}
+\begin{entrega}
+Entrega un informe en PDF y el archivo de Packet Tracer (\texttt{.pkt}):
+\begin{enumerate}[leftmargin=1.2cm]
+ \item \textbf{Diagnóstico inicial:} topología, inventario, estado de enlaces y al menos cinco hallazgos con evidencia.
+ \item \textbf{Diseño:} diagrama final, tabla de VLAN, direccionamiento, puertos y política de tráfico.
+ \item \textbf{Cambios realizados:} resumen de configuración por dispositivo y explicación de decisiones relevantes.
+ \item \textbf{Pruebas:} tabla con los 16 casos, resultado observado, esperado y evidencia.
+ \item \textbf{Seguridad:} amenazas mitigadas, riesgos restantes y funciones que no pudiste implementar en Packet Tracer.
+ \item \textbf{Reversión:} cómo desharías al menos tres cambios críticos si afectaran la operación.
+ \item \textbf{Reflexión técnica:} tres errores o dificultades, cómo los diagnosticaste y qué aprendiste.
+\end{enumerate}
+\end{entrega}
+
+\section{Registro de hallazgos}
+Utiliza una tabla como esta durante la auditoría:
+\begin{longtable}{p{2.4cm}p{2.8cm}p{2.7cm}p{3.1cm}p{1.5cm}}
+\toprule
+\textbf{Dispositivo} & \textbf{Hallazgo} & \textbf{Evidencia} & \textbf{Acción propuesta} & \textbf{Prioridad} \\
+\midrule
+Ejemplo: SW-ACC1 & VLAN incorrecta en un puerto de usuario & \texttt{show vlan brief} & Corregir asignación tras validar el puerto & Alta \\
+\bottomrule
+\end{longtable}
+
+Prioriza hallazgos por impacto en confidencialidad, integridad, disponibilidad y alcance del fallo. No corrijas un síntoma sin entender su causa.
+
+\section{Reglas de trabajo}
+\begin{enumerate}[leftmargin=1.2cm]
+ \item No borres toda la configuración para empezar de cero: diagnostica y determina qué puede reutilizarse.
+ \item Guarda una copia de las configuraciones antes de cambios importantes.
+ \item Aplica cambios pequeños y verifica después de cada fase.
+ \item Si pierdes conectividad, recupera el acceso antes de continuar.
+ \item No confundas «el comando fue aceptado» con «el requisito quedó satisfecho».
+ \item Si una función no está soportada, registra evidencia y no inventes resultados.
+ \item Utiliza direcciones y credenciales ficticias exclusivamente para el laboratorio.
+\end{enumerate}
+
+\vfill
+\begin{center}
+\textcolor{azul}{\textbf{Fin de la orden de trabajo -- Semana 01}}\\
+\small El objetivo no es introducir la mayor cantidad de comandos, sino producir una red verificable, segmentada y mantenible.
+\end{center}
+\end{document}

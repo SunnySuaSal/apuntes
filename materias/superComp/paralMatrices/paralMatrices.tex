@@ -1,0 +1,125 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot]{babel}
+\usepackage{geometry,graphicx,float,booktabs,array,longtable,xcolor,listings,hyperref,fancyhdr,titlesec}
+\geometry{top=2.5cm,bottom=2.5cm,left=2.5cm,right=2.5cm}
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+\definecolor{codebg}{RGB}{245,247,250}
+\definecolor{codeframe}{RGB}{205,213,220}
+\lstdefinestyle{terminal}{basicstyle=\ttfamily\footnotesize,breaklines=true,breakatwhitespace=false,columns=fullflexible,keepspaces=true,showstringspaces=false,backgroundcolor=\color{codebg},frame=single,rulecolor=\color{codeframe},xleftmargin=0.4em,xrightmargin=0.4em}
+\lstset{style=terminal}
+\pagestyle{fancy}\fancyhf{}\lhead{OpenHPC 4.1 -- Confluent/Slurm}\rhead{Supercómputo}\cfoot{\thepage}
+\newcommand{\evidencia}[2]{\begin{figure}[H]\centering\IfFileExists{#1}{\includegraphics[width=0.92\linewidth]{#1}}{\fbox{\parbox[c][4cm][c]{0.85\linewidth}{\centering Evidencia pendiente: \texttt{\detokenize{#1}}}}}\caption{#2}\end{figure}}
+\title{\textbf{Reporte técnico}\\[0.4em]\Large Paralelización de algoritmo para multiplicación de matrices de tamaño libre}
+\author{Alonso Gaitan José Alfonso Matrícula: 375573\\
+Jorge Alberto Suárez Saldaña Matrícula: 355992\\
+Asignatura: Supercómputo}
+\date{\today}
+\begin{document}
+\maketitle
+\section{Introducción}
+Podemos definir la multiplicación de matrices como
+\begin{equation}
+c_{i,j} = \sum^n_{k=1} a_{i,k} \cdot b_{k, j}
+\end{equation}
+
+Con la restricción de que el número de columnas de $a$ tiene que ser igual al número de filas de $b$.
+
+El objetivo de esta práctica es definir un pseudocódigo que maneje la paralelización de este algoritmo mediante la distribución de los datos y el cálculo en procesos, utilizando un proceso controlador para el manejo de los cálculos intermedios.
+
+\section{Pseudocódigo}
+
+\begin{verbatim}
+A=100
+B=100
+C=100
+D=100
+
+idProc <= Id Proceso
+numProc <= Num. de Procesos
+
+AnDatos = A / (numProc-1)
+AnDatosU = AnDatos + A % (numProc-1)
+
+Si idProc = 0
+
+	Si B != C
+		"NO SE PUEDEN MULTIPLICAR LAS MATRICES"
+		exit
+   	Fin
+
+	crearMatriz(a,A,B)
+	crearMatriz(b,C,D)
+	llenarMatriz(a,A,C)
+	llenarMatriz(a,C,D)
+	
+	crearMatriz(c,A,D)
+
+	Desde iProc = 1 hasta numProc - 2
+        	enviar(iProc, a[(iProc - 1) * AnDatos][0], AnDatos * B, int)
+        	enviar(iProc, b[0][0], C * D, int)
+    	Fin Desde
+    		enviar(numProc - 1, a[(numProc - 2) * AnDatos][0], AnDatosU * B, int)
+   		enviar(numProc - 1, b[0][0], C * D, int)
+
+
+	 Desde iProc = 1 hasta numProc - 2
+        recibir(iProc, c[(iProc - 1) * AnDatos][0], AnDatos * D, int)
+    Fin Desde
+    recibir(numProc - 1, c[(numProc - 2) * AnDatos][0], AnDatosU * D, int)
+
+    imprimirMatriz(c, A, D)
+
+Si nO
+
+	si idProc = nuProc -1
+		filas = AnDatosU
+	si no
+		filas = AnDatos
+	fin si
+
+	crearMatriz(ap, filas, B)
+	crearMatriz(bp, C, D)
+	crearMatriz(cp, filas, D)
+
+	recibir(0, ap, filas * B, int)
+	recibir(0, bp, C * D, int)	
+	
+	Desde i = 0 hasta filas - 1   //filas
+        	Desde j = 0 hasta D - 1  //columnas
+            		cp[i][j] = 0
+            			Desde k = 0 hasta B - 1 //columna de ap y fila de bp
+                			cp[i][j] = cp[i][j] + ap[i][k] * bp[k][j]
+            			Fin Desde
+        	Fin Desde
+    	Fin Desde
+
+    enviar(0, cp, filas * D, int)
+
+Fin Si
+
+\end{verbatim}
+
+\section{Explicación}
+La primera parte define los tamaños de los sub-arreglos que se van a repartir entre los procesos de cómputo, tomando en cuenta que el tamaño de datos puede no ser divisible entre el número de procesos, se considera un proceso especial al que se le asignan los datos restantes.
+
+Esta división de los datos se realiza de forma que se dividen las filas de la matriz $a$ entre el número de procesos, y a cada proceso se le pasa la matriz completa $b$.
+
+Después se implementa una revisión de las dimensiones de las matrices que se multiplican para verificar que son válidas.
+
+El proceso 0 entonces crea las matrices  $a$, $b$ y $c$ y llena $a$ y $b$.
+
+Luego se envían los datos ya seccionados a cada proceso, haciendo distinción de si el proceso actual es el último o no.
+El proceso 0, que funciona como el proceso intermediario entre los procesos de cómputo, espera a que estos últimos realicen las operaciones. 
+
+Finalmente, con los datos intermedios obtenidos por cada proceso de cómputo, el proceso 0 construye la matriz resultante $c$.
+
+Al terminar, imprime la matriz resultante $c$.
+
+Cuando el proceso actual es un proceso de cómputo, crea las matrices internas $a$, $b$ y $c$ y llena $a$ y $b$ con los datos que recibe del proceso 0 y llena la matriz $c$ utilizando la fórmula descrita anteriormente, la cual utiliza un ciclo triple:
+
+El ciclo externo recorre las filas de la matriz $a$, luego el ciclo intermedio recorre las columnas de la matriz $b$ y en el ciclo interno va llenando la matriz resultante con la suma de la multiplicación de los elementos correspondientes.
+
+Finalmente, el proceso de cómputo actual envía la matriz resultado de sus operaciones al proceso 0.
+\end{document}

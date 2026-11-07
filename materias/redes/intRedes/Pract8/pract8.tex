@@ -1,0 +1,579 @@
+
+\documentclass[12pt,a4paper]{article}
+
+% ------------------------------------------------
+% Paquetes
+% ------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish, es-nodecimaldot]{babel}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+
+% ------------------------------------------------
+% Configuración de página
+% ------------------------------------------------
+\geometry{
+    top=2.5cm,
+    bottom=2.5cm,
+    left=2.5cm,
+    right=2.5cm
+}
+
+% ------------------------------------------------
+% Configuración de listings
+% ------------------------------------------------
+\definecolor{codegray}{gray}{0.95}
+
+\lstset{
+    backgroundcolor=\color{codegray},
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    columns=fullflexible,
+    keepspaces=true,
+    showstringspaces=false,
+    tabsize=2
+}
+
+% ------------------------------------------------
+% Encabezado y pie de página
+% ------------------------------------------------
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Interacción de redes}
+\rhead{Práctica 8}
+\cfoot{\thepage}
+\setlength{\headheight}{15pt}
+
+% ------------------------------------------------
+% Configuración de títulos
+% ------------------------------------------------
+\titleformat{\section}
+{\large\bfseries}
+{\thesection.}
+{0.5em}
+{}
+
+% ------------------------------------------------
+% Hipervínculos
+% ------------------------------------------------
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue,
+    citecolor=black
+}
+
+% ------------------------------------------------
+% Comando para insertar capturas opcionales
+% ------------------------------------------------
+\newcommand{\captura}[2]{%
+    \begin{figure}[H]
+        \centering
+        \IfFileExists{#1}{%
+            \includegraphics[
+                width=0.92\textwidth,
+                keepaspectratio
+            ]{#1}
+        }{%
+            \fbox{%
+                \parbox[c][4cm][c]{0.82\textwidth}{%
+                    \centering
+                    \textbf{Captura pendiente}\\[0.5em]
+                    Archivo esperado: \texttt{#1}
+                }%
+            }%
+        }
+        \caption{#2}
+    \end{figure}
+}
+
+% ------------------------------------------------
+% Datos del documento
+% ------------------------------------------------
+\title{
+    Práctica 8:
+    \textbf{NAT}\\[0.5em]
+    \large Interacción de redes
+}
+
+\author{
+    Jorge Alberto Suárez Saldaña\\
+    \small Matrícula: 355992\\
+    \small Profesor:
+    Raymundo Antonio González Grimaldo
+}
+
+\date{\today}
+
+% ------------------------------------------------
+% Documento
+% ------------------------------------------------
+\begin{document}
+
+\maketitle
+
+\section{Static NAT}
+Asigna permanentemente una dirección IP pública a una IP privada específica con una relación 1:1.
+
+\captura{funcNat1.png}{
+Funcionamiento NAT estática
+}
+
+Show-run en R1:
+\begin{lstlisting}
+R1#show run
+Building configuration...
+
+Current configuration : 943 bytes
+!
+version 15.1
+no service timestamps log datetime msec
+no service timestamps debug datetime msec
+no service password-encryption
+!
+hostname R1
+!
+!
+!
+!
+!
+!
+!
+!
+ip cef
+no ipv6 cef
+!
+!
+!
+!
+license udi pid CISCO2911/K9 sn FTX1524L1C1
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+no ip domain-lookup
+!
+!
+spanning-tree mode pvst
+!
+!
+!
+!
+!
+!
+interface GigabitEthernet0/0
+ ip address 172.16.16.14 255.255.255.240
+ ip nat inside
+ duplex auto
+ speed auto
+!
+interface GigabitEthernet0/1
+ no ip address
+ duplex auto
+ speed auto
+ shutdown
+!
+interface GigabitEthernet0/2
+ no ip address
+ duplex auto
+ speed auto
+ shutdown
+!
+interface Serial0/0/0
+ ip address 209.165.201.2 255.255.255.248
+ ip nat outside
+!
+interface Serial0/0/1
+ no ip address
+ clock rate 2000000
+ shutdown
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+ip nat inside source static 172.16.16.1 64.100.50.1 
+ip classless
+!
+ip flow-export version 9
+!
+!
+!
+!
+!
+!
+!
+line con 0
+!
+line aux 0
+!
+line vty 0 4
+ login
+!
+!
+!
+end
+
+
+R1#
+R1#
+\end{lstlisting}
+
+\captura{natTrans1.png}{
+show ip nat translations
+}
+
+\captura{showResults1.png}{
+Assessment items
+}
+
+\section{Dynamic NAT}
+Asigna temporalmente una IP pública disponible de un conjunto (pool) a una IP privada.
+
+\captura{funcNat2.png}{
+Funcionamiento NAT dinámica
+}
+
+Show-run en R2:
+\begin{lstlisting}
+R2#show run
+Building configuration...
+
+Current configuration : 1132 bytes
+!
+version 15.1
+no service timestamps log datetime msec
+no service timestamps debug datetime msec
+no service password-encryption
+!
+hostname R2
+!
+!
+!
+!
+!
+!
+!
+!
+ip cef
+no ipv6 cef
+!
+!
+!
+!
+license udi pid CISCO2911/K9 sn FTX15241S0H
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+spanning-tree mode pvst
+!
+!
+!
+!
+!
+!
+interface GigabitEthernet0/0
+ no ip address
+ duplex auto
+ speed auto
+ shutdown
+!
+interface GigabitEthernet0/1
+ no ip address
+ duplex auto
+ speed auto
+ shutdown
+!
+interface GigabitEthernet0/2
+ no ip address
+ duplex auto
+ speed auto
+ shutdown
+!
+interface Serial0/0/0
+ ip address 209.165.200.225 255.255.255.224
+ ip nat outside
+ clock rate 2000000
+!
+interface Serial0/0/1
+ ip address 172.16.1.1 255.255.255.252
+ ip nat inside
+ clock rate 2000000
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+ip nat pool PRUEBA 209.165.200.229 209.165.200.230 netmask 255.255.255.252
+ip nat inside source list 1 pool PRUEBA
+ip classless
+ip route 0.0.0.0 0.0.0.0 Serial0/0/0 
+ip route 172.16.0.0 255.255.0.0 Serial0/0/1 
+!
+ip flow-export version 9
+!
+!
+access-list 1 permit 172.16.0.0 0.0.255.255
+!
+!
+!
+!
+!
+line con 0
+!
+line aux 0
+!
+line vty 0 4
+ login
+!
+!
+!
+end
+
+
+R2#
+\end{lstlisting}
+
+\captura{natTrans2.png}{
+show ip nat translations
+}
+
+\captura{showResults2.png}{
+Assessment items
+}
+
+\section{PAT}
+Permite que múltiples dispositivos compartan una misma IP pública, diferenciando las conexiones mediante números de puerto.
+
+\captura{funcNat3.png}{
+Funcionamiento NAT dinámica
+}
+
+Show-run en R1:
+\begin{lstlisting}
+R1#show run
+Building configuration...
+
+Current configuration : 1011 bytes
+!
+version 15.4
+no service timestamps log datetime msec
+no service timestamps debug datetime msec
+no service password-encryption
+!
+hostname R1
+!
+!
+!
+!
+!
+!
+!
+!
+no ip cef
+no ipv6 cef
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+spanning-tree mode pvst
+!
+!
+!
+!
+!
+!
+interface GigabitEthernet0/0/0
+ ip address 172.16.10.254 255.255.255.0
+ ip nat inside
+ duplex auto
+ speed auto
+!
+interface GigabitEthernet0/0/1
+ ip address 172.16.11.254 255.255.255.0
+ ip nat inside
+ duplex auto
+ speed auto
+!
+interface Serial0/1/0
+ ip address 209.165.200.226 255.255.255.224
+ ip nat outside
+!
+interface Serial0/1/1
+ no ip address
+ clock rate 2000000
+ shutdown
+!
+interface Vlan1
+ mac-address 0090.2b68.9101
+ no ip address
+ shutdown
+!
+ip nat pool PRUEBA 209.165.200.233 209.165.200.234 netmask 255.255.255.252
+ip nat inside source list 1 pool PRUEBA overload
+ip classless
+ip route 0.0.0.0 0.0.0.0 Serial0/1/0 
+!
+ip flow-export version 9
+!
+!
+access-list 1 permit 172.16.0.0 0.0.255.255
+!
+!
+!
+!
+!
+line con 0
+!
+line aux 0
+!
+line vty 0 4
+ login
+!
+!
+!
+end
+
+
+R1#
+\end{lstlisting}
+
+show run en R2:
+\begin{lstlisting}
+R2#show run
+Building configuration...
+
+Current configuration : 946 bytes
+!
+version 15.4
+no service timestamps log datetime msec
+no service timestamps debug datetime msec
+no service password-encryption
+!
+hostname R2
+!
+!
+!
+!
+!
+!
+!
+!
+no ip cef
+no ipv6 cef
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+spanning-tree mode pvst
+!
+!
+!
+!
+!
+!
+interface GigabitEthernet0/0/0
+ ip address 172.17.10.254 255.255.255.0
+ ip nat inside
+ duplex auto
+ speed auto
+!
+interface GigabitEthernet0/0/1
+ ip address 172.17.11.254 255.255.255.0
+ ip nat inside
+ duplex auto
+ speed auto
+!
+interface Serial0/1/0
+ no ip address
+ clock rate 2000000
+ shutdown
+!
+interface Serial0/1/1
+ ip address 209.165.202.130 255.255.255.252
+ ip nat outside
+!
+interface Vlan1
+ mac-address 000c.85d8.bc01
+ no ip address
+ shutdown
+!
+ip nat inside source list 2 interface Serial0/1/1 overload
+ip classless
+ip route 0.0.0.0 0.0.0.0 Serial0/1/1 
+!
+ip flow-export version 9
+!
+!
+access-list 2 permit 172.17.0.0 0.0.255.255
+!
+!
+!
+!
+!
+line con 0
+!
+line aux 0
+!
+line vty 0 4
+ login
+!
+!
+!
+end
+\end{lstlisting}
+
+\captura{natTrans3.png}{
+show ip nat translations
+}
+
+\captura{showResults3.png}{
+Assessment items
+}
+
+\end{document}

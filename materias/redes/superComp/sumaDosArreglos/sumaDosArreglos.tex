@@ -1,0 +1,683 @@
+\documentclass[12pt,a4paper]{article}
+
+% ------------------------------------------------
+% Paquetes
+% ------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish, es-nodecimaldot]{babel}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{amsmath}
+
+% ------------------------------------------------
+% Configuración de página
+% ------------------------------------------------
+\geometry{
+    top=2.5cm,
+    bottom=2.5cm,
+    left=2.5cm,
+    right=2.5cm
+}
+
+% ------------------------------------------------
+% Configuración de listings
+% ------------------------------------------------
+\definecolor{codegray}{gray}{0.95}
+
+\lstset{
+    backgroundcolor=\color{codegray},
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    columns=fullflexible,
+    keepspaces=true,
+    showstringspaces=false,
+    tabsize=2
+}
+
+% ------------------------------------------------
+% Configuración de títulos
+% ------------------------------------------------
+\titleformat{\section}
+    {\large\bfseries}
+    {\thesection.}
+    {0.5em}
+    {}
+
+% ------------------------------------------------
+% Hipervínculos
+% ------------------------------------------------
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue,
+    citecolor=black
+}
+
+% ------------------------------------------------
+% Comando para insertar capturas opcionales
+% ------------------------------------------------
+\newcommand{\captura}[2]{%
+    \begin{figure}[H]
+        \centering
+        \IfFileExists{#1}{%
+            \includegraphics[
+                width=0.92\textwidth,
+                keepaspectratio
+            ]{#1}
+        }{%
+            \fbox{%
+                \parbox[c][4cm][c]{0.82\textwidth}{%
+                    \centering
+                    \textbf{Captura pendiente}\\[0.5em]
+                    Archivo esperado: \texttt{#1}
+                }%
+            }%
+        }
+        \caption{#2}
+    \end{figure}
+}
+
+% ------------------------------------------------
+% Datos del documento
+% ------------------------------------------------
+\title{
+    MPI:\\[0.3em]
+    \textbf{Suma de dos arreglos}\\[0.5em]
+    \large Supercómputo
+}
+
+\author{
+    Jorge Alberto Suárez Saldaña\\
+    \small Matrícula: 355992\\
+    \small Profesor: Raymundo Antonio González Grimaldo
+}
+
+\date{\today}
+
+% ------------------------------------------------
+% Documento
+% ------------------------------------------------
+\begin{document}
+
+\maketitle
+
+\section{Introducción}
+
+En la presente tarea se utilizó la interfaz de paso de mensajes (MPI) en el
+lenguaje de programación C para paralelizar la suma de dos arreglos de números
+enteros. Se implementó un esquema coordinador--trabajadores en el que el proceso
+con identificador cero genera los arreglos originales \texttt{a} y \texttt{b},
+distribuye sus elementos entre los demás procesos y recibe las secciones del
+arreglo resultante \texttt{c}.
+
+Cada trabajador suma elemento a elemento las secciones que recibe y devuelve
+sus resultados al proceso coordinador. Finalmente, este reconstruye el arreglo
+completo y verifica que cada elemento cumpla la igualdad
+\(c[i]=a[i]+b[i]\). Este ejercicio permite estudiar el reparto de datos, las
+comunicaciones punto a punto y la coordinación de procesos en una aplicación
+paralela.
+
+\section{Código fuente}
+
+El siguiente programa se escribió en C utilizando las funciones de MPI para
+el envío y la recepción de mensajes.
+
+\begin{lstlisting}[language=C]
+/* Materia: Supercomputo
+ * Semestre: Noveno
+ * Nombre del alumno: Jorge Alberto Suarez Saldana
+ * Clave del alumno: 355992
+ * Carrera: Ingenieria en Sistemas Inteligentes
+ * Nombre de la tarea: Suma de dos arreglos
+ * Periodo de evaluacion: 2do parcial
+ * Descripcion: Suma los elementos de los arreglos a y b y
+ *              los guarda en el arreglo c utilizando MPI
+ * Avance logrado: 100%
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <mpi.h>
+
+#define N 100
+
+int main(int argc, char **argv) {
+    int idProc, numProc;
+    int nDatos, nDatosU;
+    int *a, *b, *c;
+    int inicio;
+
+    MPI_Init(&argc, &argv);
+
+    MPI_Comm_rank(MPI_COMM_WORLD, &idProc);
+    MPI_Comm_size(MPI_COMM_WORLD, &numProc);
+
+    if (numProc < 2 || numProc > N + 1) {
+        if (idProc == 0)
+            printf("Se requieren entre 2 y %d procesos.\n", N + 1);
+
+        MPI_Finalize();
+        return 1;
+    }
+
+    nDatos = N / (numProc - 1);
+    nDatosU = nDatos + N % (numProc - 1);
+
+    if (idProc == 0) {
+        // Proceso coordinador
+        a = malloc(N * sizeof(int));
+        b = malloc(N * sizeof(int));
+        c = malloc(N * sizeof(int));
+
+        if (a == NULL || b == NULL || c == NULL) {
+            MPI_Abort(MPI_COMM_WORLD, 1);
+        }
+
+        // Llenar arreglos con numeros aleatorios
+        srand(time(NULL));
+
+        for (int i = 0; i < N; i++) {
+            a[i] = rand() % 100 + 1;
+            b[i] = rand() % 100 + 1;
+        }
+
+        // Enviar secciones a los trabajadores
+        for (int iProc = 1; iProc < numProc - 1; iProc++) {
+            inicio = (iProc - 1) * nDatos;
+
+            MPI_Send(&a[inicio], nDatos, MPI_INT,
+                     iProc, 0, MPI_COMM_WORLD);
+
+            MPI_Send(&b[inicio], nDatos, MPI_INT,
+                     iProc, 1, MPI_COMM_WORLD);
+        }
+
+        // Enviar ultima seccion
+        inicio = (numProc - 2) * nDatos;
+
+        MPI_Send(&a[inicio], nDatosU, MPI_INT,
+                 numProc - 1, 0, MPI_COMM_WORLD);
+
+        MPI_Send(&b[inicio], nDatosU, MPI_INT,
+                 numProc - 1, 1, MPI_COMM_WORLD);
+
+        // Recibir resultados de los trabajadores
+        for (int iProc = 1; iProc < numProc - 1; iProc++) {
+            inicio = (iProc - 1) * nDatos;
+
+            MPI_Recv(&c[inicio], nDatos, MPI_INT,
+                     iProc, 2, MPI_COMM_WORLD,
+                     MPI_STATUS_IGNORE);
+        }
+
+        // Recibir ultima seccion de c
+        inicio = (numProc - 2) * nDatos;
+
+        MPI_Recv(&c[inicio], nDatosU, MPI_INT,
+                 numProc - 1, 2, MPI_COMM_WORLD,
+                 MPI_STATUS_IGNORE);
+
+        // Imprimir los tres arreglos
+        printf("Arreglo A:\n");
+        for (int i = 0; i < N; i++) {
+            printf("%d ", a[i]);
+        }
+
+        printf("\n\nArreglo B:\n");
+        for (int i = 0; i < N; i++) {
+            printf("%d ", b[i]);
+        }
+
+        printf("\n\nArreglo C (A + B):\n");
+        for (int i = 0; i < N; i++) {
+            printf("%d ", c[i]);
+        }
+
+        printf("\n\n");
+
+        // Verificar el resultado
+        int correcto = 1;
+
+        for (int i = 0; i < N; i++) {
+            if (c[i] != a[i] + b[i]) {
+                correcto = 0;
+                break;
+            }
+        }
+
+        if (correcto)
+            printf("Resultado correcto.\n");
+        else
+            printf("Error: los resultados no coinciden.\n");
+
+        free(a);
+        free(b);
+        free(c);
+
+    } else {
+        // Procesos trabajadores
+        if (idProc == numProc - 1) {
+            nDatos = nDatosU;
+        }
+
+        a = malloc(nDatos * sizeof(int));
+        b = malloc(nDatos * sizeof(int));
+        c = malloc(nDatos * sizeof(int));
+
+        if (a == NULL || b == NULL || c == NULL) {
+            MPI_Abort(MPI_COMM_WORLD, 1);
+        }
+
+        // Recibir secciones de a y b
+        MPI_Recv(a, nDatos, MPI_INT,
+                 0, 0, MPI_COMM_WORLD,
+                 MPI_STATUS_IGNORE);
+
+        MPI_Recv(b, nDatos, MPI_INT,
+                 0, 1, MPI_COMM_WORLD,
+                 MPI_STATUS_IGNORE);
+
+        // Sumar los arreglos elemento a elemento
+        for (int i = 0; i < nDatos; i++) {
+            c[i] = a[i] + b[i];
+        }
+
+        // Devolver resultado al coordinador
+        MPI_Send(c, nDatos, MPI_INT,
+                 0, 2, MPI_COMM_WORLD);
+
+        free(a);
+        free(b);
+        free(c);
+    }
+
+    MPI_Finalize();
+    return 0;
+}
+\end{lstlisting}
+
+\section{Explicación del código}
+
+El programa incluye las bibliotecas \texttt{stdio.h} para entrada y salida,
+\texttt{stdlib.h} para memoria dinámica y generación de números aleatorios,
+\texttt{time.h} para obtener una semilla y \texttt{mpi.h} para acceder a las
+funciones de comunicación entre procesos.
+
+La constante \texttt{N} determina la cantidad de elementos de cada arreglo:
+
+\begin{lstlisting}[language=C]
+#define N 100
+
+MPI_Init(&argc, &argv);
+MPI_Comm_rank(MPI_COMM_WORLD, &idProc);
+MPI_Comm_size(MPI_COMM_WORLD, &numProc);
+\end{lstlisting}
+
+\texttt{MPI\_Init()} inicializa el entorno MPI. La función
+\texttt{MPI\_Comm\_rank()} obtiene el identificador del proceso actual y lo
+almacena en \texttt{idProc}, mientras que \texttt{MPI\_Comm\_size()} almacena
+el número total de procesos en \texttt{numProc}. El comunicador
+\texttt{MPI\_COMM\_WORLD} incluye inicialmente a todos los procesos de la
+ejecución.
+
+El programa exige al menos dos procesos, pues necesita un coordinador y un
+trabajador. También limita la ejecución a \(N+1=101\) procesos para evitar
+trabajadores sin elementos que procesar.
+
+\subsection{Distribución de los datos}
+
+El proceso cero se reserva para coordinar la ejecución, mientras que los
+\(P-1\) procesos restantes se encargan de realizar las sumas. La cantidad de
+elementos que recibe cada trabajador, excepto el último, se calcula mediante:
+
+\begin{lstlisting}[language=C]
+nDatos = N / (numProc - 1);
+nDatosU = nDatos + N % (numProc - 1);
+\end{lstlisting}
+
+Si \(P\) es el número total de procesos, el número de trabajadores es:
+
+\[
+P_t=P-1.
+\]
+
+Para los primeros \(P-2\) trabajadores, el tamaño de la sección es:
+
+\[
+nDatos=\left\lfloor\frac{N}{P-1}\right\rfloor.
+\]
+
+El último trabajador procesa la misma cantidad más el residuo de la división:
+
+\[
+nDatosU=\left\lfloor\frac{N}{P-1}\right\rfloor
++\bigl(N\bmod(P-1)\bigr).
+\]
+
+Por ejemplo, al ejecutar el programa con siete procesos, seis de ellos serán
+trabajadores. Para \(N=100\):
+
+\[
+nDatos=\left\lfloor\frac{100}{6}\right\rfloor=16,
+\qquad
+nDatosU=16+(100\bmod 6)=20.
+\]
+
+Por lo tanto, cinco trabajadores recibirán 16 elementos de cada arreglo y el
+último recibirá 20. Así se procesarán los \(5(16)+20=100\) elementos de cada
+arreglo sin perder información.
+
+\subsection{Funcionamiento del proceso coordinador}
+
+El proceso con identificador cero reserva memoria para tres arreglos de
+\(N\) enteros: \texttt{a}, \texttt{b} y \texttt{c}. Los dos primeros contienen
+los operandos, mientras que el tercero almacenará la suma.
+
+\begin{lstlisting}[language=C]
+a = malloc(N * sizeof(int));
+b = malloc(N * sizeof(int));
+c = malloc(N * sizeof(int));
+
+if (a == NULL || b == NULL || c == NULL) {
+    MPI_Abort(MPI_COMM_WORLD, 1);
+}
+\end{lstlisting}
+
+Si alguna reserva falla, \texttt{MPI\_Abort()} solicita la interrupción de la
+ejecución de los procesos pertenecientes al comunicador.
+
+\subsubsection{Generación de los arreglos originales}
+
+Únicamente el coordinador llena los arreglos \texttt{a} y \texttt{b} con
+valores pseudoaleatorios enteros entre 1 y 100:
+
+\begin{lstlisting}[language=C]
+srand(time(NULL));
+
+for (int i = 0; i < N; i++) {
+    a[i] = rand() % 100 + 1;
+    b[i] = rand() % 100 + 1;
+}
+\end{lstlisting}
+
+La instrucción \texttt{srand()} inicializa la semilla del generador usando la
+hora actual. Los trabajadores no generan números aleatorios: solamente
+procesan los datos que reciben.
+
+\subsubsection{Envío de las secciones de A y B}
+
+El coordinador calcula la posición inicial de cada segmento y utiliza dos
+llamadas a \texttt{MPI\_Send()} para enviar las secciones correspondientes de
+los dos arreglos:
+
+\begin{lstlisting}[language=C]
+for (int iProc = 1; iProc < numProc - 1; iProc++) {
+    inicio = (iProc - 1) * nDatos;
+
+    MPI_Send(&a[inicio], nDatos, MPI_INT,
+             iProc, 0, MPI_COMM_WORLD);
+
+    MPI_Send(&b[inicio], nDatos, MPI_INT,
+             iProc, 1, MPI_COMM_WORLD);
+}
+\end{lstlisting}
+
+La expresión
+\[
+inicio=(iProc-1)\cdot nDatos
+\]
+identifica el índice a partir del cual se encuentran los datos que recibirá
+cada trabajador. Las secciones de \texttt{a} y \texttt{b} comienzan en el
+mismo índice, pues se sumarán elemento a elemento.
+
+Cada llamada a \texttt{MPI\_Send()} especifica la dirección del primer
+elemento, la cantidad de enteros, el tipo \texttt{MPI\_INT}, el identificador
+del destinatario, una etiqueta y el comunicador. En este programa se utilizan
+las etiquetas \texttt{0} para las secciones de \texttt{a} y \texttt{1} para
+las secciones de \texttt{b}.
+
+El último trabajador requiere un envío separado, porque puede recibir más
+elementos que los anteriores:
+
+\begin{lstlisting}[language=C]
+inicio = (numProc - 2) * nDatos;
+
+MPI_Send(&a[inicio], nDatosU, MPI_INT,
+         numProc - 1, 0, MPI_COMM_WORLD);
+
+MPI_Send(&b[inicio], nDatosU, MPI_INT,
+         numProc - 1, 1, MPI_COMM_WORLD);
+\end{lstlisting}
+
+De esta manera, cada trabajador recibe exclusivamente las secciones que debe
+procesar, y no los arreglos completos.
+
+\subsubsection{Recepción y reconstrucción del arreglo C}
+
+Después del envío, el coordinador recibe de cada trabajador la sección
+resultante de \texttt{c}, utilizando la etiqueta \texttt{2}:
+
+\begin{lstlisting}[language=C]
+for (int iProc = 1; iProc < numProc - 1; iProc++) {
+    inicio = (iProc - 1) * nDatos;
+
+    MPI_Recv(&c[inicio], nDatos, MPI_INT,
+             iProc, 2, MPI_COMM_WORLD,
+             MPI_STATUS_IGNORE);
+}
+
+inicio = (numProc - 2) * nDatos;
+
+MPI_Recv(&c[inicio], nDatosU, MPI_INT,
+         numProc - 1, 2, MPI_COMM_WORLD,
+         MPI_STATUS_IGNORE);
+\end{lstlisting}
+
+A diferencia de un algoritmo que solo devuelve una suma total, aquí cada
+trabajador envía un subarreglo de resultados. El coordinador almacena cada
+mensaje directamente en la posición correspondiente del arreglo \texttt{c}.
+Por ello, las secciones llegan a ocupar índices consecutivos y se reconstruye
+el arreglo completo sin operaciones adicionales de copia.
+
+\texttt{MPI\_Recv()} recibe un mensaje del proceso y con la etiqueta
+especificados. La constante \texttt{MPI\_STATUS\_IGNORE} indica que no se
+necesita guardar los datos de estado de la recepción.
+
+\subsection{Funcionamiento de los procesos trabajadores}
+
+Todos los procesos distintos de cero ejecutan el bloque destinado a los
+trabajadores. Si el proceso es el último, ajusta la cantidad de elementos que
+debe recibir:
+
+\begin{lstlisting}[language=C]
+if (idProc == numProc - 1) {
+    nDatos = nDatosU;
+}
+\end{lstlisting}
+
+Después reserva memoria independiente para sus tres arreglos locales y
+recibe las secciones enviadas por el coordinador:
+
+\begin{lstlisting}[language=C]
+MPI_Recv(a, nDatos, MPI_INT,
+         0, 0, MPI_COMM_WORLD,
+         MPI_STATUS_IGNORE);
+
+MPI_Recv(b, nDatos, MPI_INT,
+         0, 1, MPI_COMM_WORLD,
+         MPI_STATUS_IGNORE);
+\end{lstlisting}
+
+Ambos mensajes provienen del proceso cero. Las etiquetas \texttt{0} y
+\texttt{1} permiten distinguir los datos del primer y del segundo arreglo.
+Cada proceso dispone de su propio espacio de memoria, por lo que sus arreglos
+locales son independientes de los del coordinador.
+
+\subsubsection{Suma elemento a elemento}
+
+Una vez recibidos ambos segmentos, el trabajador calcula cada elemento de su
+arreglo \texttt{c} mediante el siguiente ciclo:
+
+\begin{lstlisting}[language=C]
+for (int i = 0; i < nDatos; i++) {
+    c[i] = a[i] + b[i];
+}
+\end{lstlisting}
+
+La operación realizada para cada posición se expresa como:
+
+\[
+c_i=a_i+b_i,\qquad 0\leq i<N.
+\]
+
+Aunque cada trabajador recorre secuencialmente su propia sección, los
+diferentes procesos pueden realizar los cálculos concurrentemente. Esto
+constituye una paralelización de datos: la misma operación se aplica a
+subconjuntos distintos de los arreglos originales.
+
+\subsubsection{Devolución de los resultados}
+
+Finalmente, el trabajador envía al coordinador todos los valores de su
+subarreglo \texttt{c}:
+
+\begin{lstlisting}[language=C]
+MPI_Send(c, nDatos, MPI_INT,
+         0, 2, MPI_COMM_WORLD);
+\end{lstlisting}
+
+La etiqueta \texttt{2} distingue el mensaje de resultado de los mensajes de
+entrada. Una vez realizado el envío, el trabajador libera sus tres bloques de
+memoria con \texttt{free()}.
+
+\subsection{Organización de los mensajes}
+
+Para distinguir los tipos de datos intercambiados se emplean tres etiquetas.
+Su función dentro del programa es la siguiente:
+
+\begin{center}
+\begin{tabular}{|c|l|l|}
+\hline
+\textbf{Etiqueta} & \textbf{Origen y destino} & \textbf{Contenido} \\
+\hline
+0 & Coordinador $\rightarrow$ trabajador & Sección de \texttt{a} \\
+\hline
+1 & Coordinador $\rightarrow$ trabajador & Sección de \texttt{b} \\
+\hline
+2 & Trabajador $\rightarrow$ coordinador & Sección de \texttt{c} \\
+\hline
+\end{tabular}
+\end{center}
+
+Cada trabajador recibe dos mensajes y envía uno. Por lo tanto, con \(P-1\)
+trabajadores se realizan \(2(P-1)\) envíos de segmentos de entrada y
+\(P-1\) envíos de resultados, es decir, \(3(P-1)\) mensajes de datos en total.
+En conjunto, se transfieren \(2N\) elementos enteros hacia los trabajadores
+y \(N\) elementos enteros de regreso al coordinador, sin contar información
+interna del protocolo de comunicación.
+
+\subsection{Impresión y verificación de resultados}
+
+Cuando el proceso cero ya ha recibido todas las secciones, imprime los tres
+arreglos completos, permitiendo examinar los datos de entrada y el resultado.
+Después comprueba que cada elemento de \texttt{c} sea igual a la suma de los
+valores correspondientes en \texttt{a} y \texttt{b}:
+
+\begin{lstlisting}[language=C]
+int correcto = 1;
+
+for (int i = 0; i < N; i++) {
+    if (c[i] != a[i] + b[i]) {
+        correcto = 0;
+        break;
+    }
+}
+
+if (correcto)
+    printf("Resultado correcto.\n");
+else
+    printf("Error: los resultados no coinciden.\n");
+\end{lstlisting}
+
+La variable \texttt{correcto} empieza con valor \texttt{1}, que representa
+que no se han detectado errores. Si alguna posición no cumple la igualdad,
+se asigna el valor \texttt{0} y termina la revisión mediante \texttt{break}.
+Si todas las posiciones coinciden, se muestra el mensaje
+\texttt{Resultado correcto.}
+
+Esta validación permite detectar errores en el reparto, el cálculo o la
+reconstrucción de los datos. Comprueba la corrección para los valores usados
+en esa ejecución, aunque no sustituye una evaluación del rendimiento del
+algoritmo paralelo.
+
+\subsection{Finalización y liberación de recursos}
+
+Tanto el coordinador como los trabajadores liberan con \texttt{free()} los
+bloques de memoria reservados. Al concluir la comunicación, todos los
+procesos ejecutan:
+
+\begin{lstlisting}[language=C]
+MPI_Finalize();
+\end{lstlisting}
+
+Esta función finaliza ordenadamente el entorno MPI y libera los recursos
+internos asociados a la ejecución.
+
+\section{Compilación y ejecución}
+
+Para compilar el programa, guardado con el nombre
+\texttt{sumaDosArreglos.c}, se utiliza el compilador de MPI:
+
+\begin{lstlisting}
+mpicc sumaDosArreglos.c -o sumaDosArreglos.out
+\end{lstlisting}
+
+Por ejemplo, la ejecución con siete procesos se realiza mediante:
+
+\begin{lstlisting}
+mpirun -np 7 ./sumaDosArreglos.out
+\end{lstlisting}
+
+El programa genera e imprime dos arreglos de 100 enteros, reconstruye el
+arreglo de resultados y comprueba la suma elemento a elemento. Como los datos
+son pseudoaleatorios, los valores mostrados pueden cambiar entre ejecuciones.
+
+\section{Conclusión}
+
+El programa implementa un esquema de paralelización coordinador--trabajadores
+mediante MPI para calcular la suma elemento a elemento de dos arreglos. El
+proceso cero genera los operandos, distribuye sus segmentos, recibe los
+resultados y reconstruye el arreglo final; mientras tanto, los trabajadores
+calculan las sumas de sus propias secciones.
+
+La implementación permite comprender el uso de \texttt{MPI\_Send()} y
+\texttt{MPI\_Recv()} en el intercambio de arreglos, así como la importancia
+de las etiquetas para distinguir los mensajes. También muestra cómo manejar
+una distribución no exacta cuando el número de elementos no es divisible
+entre la cantidad de trabajadores.
+
+La verificación final asegura que, durante la ejecución comprobada, cada
+posición del arreglo resultante coincida con la suma de sus dos operandos.
+Con ello se demuestra la correcta aplicación de la descomposición de datos
+y la recolección de resultados en este ejercicio de programación paralela.
+
+\section{Capturas de comprobación}
+
+\captura{codigoFuente.png}{
+    Código fuente del programa de suma de dos arreglos en el editor NeoVim.
+}	
+
+\captura{terminal.png}{
+    Compilación y ejecución del programa con distintos valores de \texttt{N}
+    y diferentes cantidades de procesos, incluyendo la verificación del resultado.
+}
+
+\end{document}

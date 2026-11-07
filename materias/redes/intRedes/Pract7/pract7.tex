@@ -1,0 +1,1692 @@
+
+\documentclass[12pt,a4paper]{article}
+
+% ------------------------------------------------
+% Paquetes
+% ------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish, es-nodecimaldot]{babel}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+
+% ------------------------------------------------
+% Configuración de página
+% ------------------------------------------------
+\geometry{
+    top=2.5cm,
+    bottom=2.5cm,
+    left=2.5cm,
+    right=2.5cm
+}
+
+% ------------------------------------------------
+% Configuración de listings
+% ------------------------------------------------
+\definecolor{codegray}{gray}{0.95}
+
+\lstset{
+    backgroundcolor=\color{codegray},
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    columns=fullflexible,
+    keepspaces=true,
+    showstringspaces=false,
+    tabsize=2
+}
+
+% ------------------------------------------------
+% Encabezado y pie de página
+% ------------------------------------------------
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Interacción de redes}
+\rhead{Práctica 7}
+\cfoot{\thepage}
+\setlength{\headheight}{15pt}
+
+% ------------------------------------------------
+% Configuración de títulos
+% ------------------------------------------------
+\titleformat{\section}
+{\large\bfseries}
+{\thesection.}
+{0.5em}
+{}
+
+% ------------------------------------------------
+% Hipervínculos
+% ------------------------------------------------
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue,
+    citecolor=black
+}
+
+% ------------------------------------------------
+% Comando para insertar capturas opcionales
+% ------------------------------------------------
+\newcommand{\captura}[2]{%
+    \begin{figure}[H]
+        \centering
+        \IfFileExists{#1}{%
+            \includegraphics[
+                width=0.92\textwidth,
+                keepaspectratio
+            ]{#1}
+        }{%
+            \fbox{%
+                \parbox[c][4cm][c]{0.82\textwidth}{%
+                    \centering
+                    \textbf{Captura pendiente}\\[0.5em]
+                    Archivo esperado: \texttt{#1}
+                }%
+            }%
+        }
+        \caption{#2}
+    \end{figure}
+}
+
+% ------------------------------------------------
+% Datos del documento
+% ------------------------------------------------
+\title{
+    Práctica 7:
+    \textbf{Configuración de ACL Extendidas
+    en Equipo Físico}\\[0.5em]
+    \large Interacción de redes
+}
+
+\author{
+    Jorge Alberto Suárez Saldaña\\
+    \small Matrícula: 355992\\
+    \small Profesor:
+    Raymundo Antonio González Grimaldo
+}
+
+\date{\today}
+
+% ------------------------------------------------
+% Documento
+% ------------------------------------------------
+\begin{document}
+
+\maketitle
+
+\section{Introducción}
+
+Las listas de control de acceso, conocidas como ACL
+(\textit{Access Control Lists}), son mecanismos utilizados
+en dispositivos de red para permitir o denegar el
+tráfico de acuerdo con criterios previamente establecidos.
+
+En los routers Cisco, las ACL extendidas permiten
+evaluar características como las direcciones IPv4
+de origen y destino, el protocolo de transporte,
+los puertos utilizados y determinados tipos
+de mensajes ICMP.
+
+A diferencia de las ACL estándar, que filtran
+principalmente según la dirección IPv4 de origen,
+las ACL extendidas permiten establecer políticas
+de seguridad más específicas.
+
+En esta práctica se implementó una topología de
+red física compuesta por dos routers Cisco,
+dos switches, dos equipos cliente y dos servidores
+virtualizados con Ubuntu Server.
+
+Se configuró el protocolo OSPF para permitir
+la comunicación entre las diferentes subredes.
+Posteriormente, se implementaron ACL extendidas
+para restringir el acceso al servidor de bases
+de datos y controlar las solicitudes ICMP entre
+las redes interna y externa.
+
+Adicionalmente, se desarrolló una aplicación
+web utilizando Apache y PHP, capaz de consultar
+información almacenada en un servidor remoto
+MySQL/MariaDB.
+
+Esta aplicación permitió comprobar que el
+filtrado de tráfico no interfiriera con
+las comunicaciones autorizadas.
+
+\section{Topología de red}
+
+La topología implementada comprende dos
+redes locales comunicadas mediante un enlace serial.
+
+El router RI proporciona conectividad a
+la red interna, mientras que el router RE
+proporciona conectividad a la red externa.
+
+Las redes utilizadas fueron:
+
+\begin{itemize}
+    \item Red interna:
+    \texttt{52.20.30.0/24}.
+
+    \item Red externa:
+    \texttt{140.10.20.0/24}.
+
+    \item Enlace serial:
+    \texttt{200.0.0.0/30}.
+\end{itemize}
+
+El switch SI conecta al router RI
+con PCI y Web Server.
+
+El switch SE conecta al router RE
+con PCE y DB Server.
+
+Los servidores se ejecutaron en máquinas
+virtuales, conectadas mediante adaptadores
+de red en modo puente
+(\textit{Bridged Networking}).
+
+Este modo permitió que las máquinas virtuales
+participaran directamente en las redes
+del laboratorio.
+
+\captura{topologia.png}{
+    Topología física utilizada en la práctica.
+}
+
+\subsection{Tabla de direccionamiento}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Dispositivo} &
+\textbf{Interfaz} &
+\textbf{IPv4} &
+\textbf{Máscara} \\
+\hline
+RI & G0/0 & 52.20.30.1 & /24 \\
+\hline
+RI & Serial & 200.0.0.1 & /30 \\
+\hline
+RE & Serial & 200.0.0.2 & /30 \\
+\hline
+RE & G0/0 & 140.10.20.1 & /24 \\
+\hline
+Web Server & Ethernet & 52.20.30.10 & /24 \\
+\hline
+PCI & Ethernet & 52.20.30.20 & /24 \\
+\hline
+DB Server & Ethernet & 140.10.20.10 & /24 \\
+\hline
+PCE & Ethernet & 140.10.20.20 & /24 \\
+\hline
+\end{tabular}
+\caption{Direccionamiento IPv4 de la topología.}
+\end{table}
+
+Las interfaces Ethernet de los routers
+utilizan una máscara \texttt{/24},
+equivalente a \texttt{255.255.255.0}.
+
+El enlace serial utiliza una máscara
+\texttt{/30}, equivalente a
+\texttt{255.255.255.252}.
+
+Las puertas de enlace de los equipos
+finales se configuraron de la
+siguiente manera:
+
+\begin{itemize}
+    \item Web Server y PCI:
+    \texttt{52.20.30.1}.
+
+    \item DB Server y PCE:
+    \texttt{140.10.20.1}.
+\end{itemize}
+
+\section{Preparación del servidor web}
+
+\subsection{Instalación del sistema operativo}
+
+Para Web Server se utilizó una
+máquina virtual con Ubuntu Server
+26.04.1 LTS, denominada
+\texttt{webserverpract}.
+
+La versión del sistema operativo
+se verificó utilizando:
+
+\begin{lstlisting}
+cat /etc/os-release
+\end{lstlisting}
+
+El sistema reportó:
+
+\begin{lstlisting}
+PRETTY_NAME="Ubuntu 26.04.1 LTS"
+VERSION_ID="26.04"
+VERSION_CODENAME=resolute
+\end{lstlisting}
+
+Inicialmente se intentó instalar PHP 8.3,
+pero los repositorios configurados
+no proporcionaban dichos paquetes.
+
+Por esta razón se utilizó PHP 8.5,
+disponible para la versión instalada
+de Ubuntu.
+
+Este cambio no modificó los objetivos
+de comunicación y filtrado de tráfico
+de la práctica.
+
+\subsection{Instalación de Apache y PHP}
+
+Primero se actualizaron los índices
+de paquetes:
+
+\begin{lstlisting}
+sudo apt update
+\end{lstlisting}
+
+Posteriormente se instalaron los servicios
+necesarios:
+
+\begin{lstlisting}
+sudo apt install -y \
+    apache2 \
+    php8.5 \
+    php8.5-cli \
+    libapache2-mod-php8.5 \
+    php8.5-mysql \
+    mariadb-client \
+    curl \
+    net-tools
+\end{lstlisting}
+
+El paquete \texttt{php8.5-mysql}
+proporciona los controladores necesarios
+para establecer conexiones entre PHP
+y MySQL/MariaDB.
+
+\subsection{Activación y verificación de Apache}
+
+Se habilitó Apache para iniciar
+automáticamente con el sistema:
+
+\begin{lstlisting}
+sudo systemctl enable --now apache2
+\end{lstlisting}
+
+Se comprobó su estado mediante:
+
+\begin{lstlisting}
+sudo systemctl status apache2
+\end{lstlisting}
+
+El servicio reportó:
+
+\begin{lstlisting}
+Active: active (running)
+\end{lstlisting}
+
+Se verificó también la versión de PHP:
+
+\begin{lstlisting}
+php -v
+\end{lstlisting}
+
+La versión instalada fue PHP 8.5.4.
+
+\subsection{Prueba de ejecución de PHP}
+
+Para comprobar la integración entre
+Apache y PHP se creó un archivo temporal:
+
+\begin{lstlisting}
+echo '<?php echo "Apache y PHP funcionando. Version: " . PHP_VERSION; ?>' \
+    | sudo tee /var/www/html/check.php
+\end{lstlisting}
+
+La prueba se realizó mediante:
+
+\begin{lstlisting}
+curl http://localhost/check.php
+\end{lstlisting}
+
+La respuesta obtenida fue:
+
+\begin{lstlisting}
+Apache y PHP funcionando. Version: 8.5.4
+\end{lstlisting}
+
+Este resultado confirmó que Apache
+interpretaba correctamente el código PHP.
+
+Finalmente se eliminó el archivo temporal:
+
+\begin{lstlisting}
+sudo rm /var/www/html/check.php
+\end{lstlisting}
+
+\section{Configuración del servidor de bases de datos}
+
+El segundo servidor se destinó al
+almacenamiento y administración
+de una base de datos relacional.
+
+El gestor utilizado fue compatible
+con el protocolo MySQL, permitiendo
+la conexión desde PHP mediante PDO.
+
+\subsection{Base de datos y estructura}
+
+La base de datos utilizada recibió
+el nombre:
+
+\begin{lstlisting}
+laboratorio_acl
+\end{lstlisting}
+
+Dentro de ella se creó una tabla
+denominada \texttt{productos}.
+
+Su estructura fue la siguiente:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Columna} & \textbf{Tipo} \\
+\hline
+id & INT \\
+\hline
+nombre & VARCHAR(100) \\
+\hline
+precio & DECIMAL(10,2) \\
+\hline
+cantidad & INT \\
+\hline
+fecha\_registro & DATE \\
+\hline
+disponible & TINYINT(1) \\
+\hline
+\end{tabular}
+\caption{Estructura de la tabla productos.}
+\end{table}
+
+La tabla contiene seis columnas
+con diferentes tipos de datos,
+cumpliendo el requisito establecido
+en la práctica.
+
+Los campos representan:
+
+\begin{itemize}
+    \item \texttt{id}: identificador
+    del producto.
+
+    \item \texttt{nombre}: nombre
+    del artículo.
+
+    \item \texttt{precio}: precio
+    del producto.
+
+    \item \texttt{cantidad}: unidades
+    registradas.
+
+    \item \texttt{fecha\_registro}:
+    fecha de incorporación.
+
+    \item \texttt{disponible}:
+    indicador booleano de disponibilidad.
+\end{itemize}
+
+\subsection{Consultas de verificación}
+
+Para inspeccionar la base de datos
+se utilizaron las instrucciones:
+
+\begin{lstlisting}[language=SQL]
+SHOW DATABASES;
+
+USE laboratorio_acl;
+
+SHOW TABLES;
+
+DESCRIBE productos;
+
+SELECT * FROM productos;
+\end{lstlisting}
+
+
+\subsection{Conexiones remotas}
+
+Para permitir la comunicación
+entre Web Server y DB Server,
+el gestor debía aceptar conexiones
+TCP en el puerto 3306.
+
+En la topología definitiva,
+el servidor de bases de datos
+utilizó la dirección:
+
+\begin{lstlisting}
+140.10.20.10
+\end{lstlisting}
+
+La configuración del servicio
+debía permitir conexiones sobre
+esa interfaz, mediante un parámetro
+equivalente a:
+
+\begin{lstlisting}
+bind-address = 140.10.20.10
+\end{lstlisting}
+
+El servicio se verificó mediante:
+
+\begin{lstlisting}
+sudo ss -lntp | grep 3306
+\end{lstlisting}
+
+Se utilizó el usuario
+\texttt{webuser} para las consultas
+desde la aplicación PHP.
+
+Como medida de seguridad,
+se recomienda otorgar exclusivamente
+el permiso \texttt{SELECT} a la
+cuenta utilizada por la aplicación.
+
+Una configuración de permisos
+apropiada es:
+
+\begin{lstlisting}[language=SQL]
+CREATE USER IF NOT EXISTS
+'webuser'@'52.20.30.10'
+IDENTIFIED BY 'CLAVE_PRIVADA';
+
+GRANT SELECT
+ON laboratorio_acl.productos
+TO 'webuser'@'52.20.30.10';
+\end{lstlisting}
+
+La contraseña real no se incluye
+en este reporte por motivos
+de seguridad.
+
+\section{Desarrollo de la aplicación web}
+
+\subsection{Arquitectura de comunicación}
+
+La aplicación se diseñó utilizando
+una arquitectura cliente-servidor.
+
+El flujo de información fue:
+
+\begin{enumerate}
+    \item Un cliente realiza una
+    solicitud HTTP a Web Server.
+
+    \item Apache recibe la solicitud
+    y ejecuta el archivo PHP.
+
+    \item PHP establece una conexión
+    TCP con DB Server.
+
+    \item El gestor ejecuta una consulta SQL.
+
+    \item PHP recibe los registros
+    y genera una tabla HTML.
+
+    \item Apache devuelve la página
+    al navegador del cliente.
+\end{enumerate}
+
+Los servicios utilizan los siguientes
+puertos:
+
+\begin{itemize}
+    \item HTTP: TCP 80.
+    \item MySQL/MariaDB: TCP 3306.
+\end{itemize}
+
+\subsection{Archivo de conexión}
+
+Se creó un archivo de configuración
+fuera del directorio público de Apache:
+
+\begin{lstlisting}
+sudo install -d -m 750 \
+    -o root -g www-data \
+    /etc/practica-web
+
+sudo nano /etc/practica-web/db.php
+\end{lstlisting}
+
+El archivo contiene los parámetros
+necesarios para la conexión:
+
+\begin{lstlisting}
+<?php
+
+return [
+    'host' => '140.10.20.10',
+    'database' => 'laboratorio_acl',
+    'username' => 'webuser',
+    'password' => 'CLAVE_PRIVADA'
+];
+\end{lstlisting}
+
+Se restringieron sus permisos:
+
+\begin{lstlisting}
+sudo chown root:www-data \
+    /etc/practica-web/db.php
+
+sudo chmod 640 \
+    /etc/practica-web/db.php
+\end{lstlisting}
+
+La separación de este archivo
+permite modificar los parámetros
+de conexión sin alterar
+la lógica de la aplicación.
+
+\subsection{Código PHP implementado}
+
+La aplicación principal se almacenó en:
+
+\begin{lstlisting}
+/var/www/html/index.php
+\end{lstlisting}
+
+La lógica PHP utilizada para
+consultar la base de datos fue:
+
+\begin{lstlisting}
+<?php
+
+$config = require '/etc/practica-web/db.php';
+
+$registros = [];
+$error = null;
+
+function escapar($valor): string {
+    return htmlspecialchars(
+        (string) $valor,
+        ENT_QUOTES | ENT_SUBSTITUTE,
+        'UTF-8'
+    );
+}
+
+try {
+    $dsn = "mysql:host={$config['host']};" .
+           "port=3306;" .
+           "dbname={$config['database']};" .
+           "charset=utf8mb4";
+
+    $pdo = new PDO(
+        $dsn,
+        $config['username'],
+        $config['password'],
+        [
+            PDO::ATTR_ERRMODE =>
+                PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE =>
+                PDO::FETCH_ASSOC,
+            PDO::ATTR_TIMEOUT => 5
+        ]
+    );
+
+    $sql = "SELECT id, nombre, precio,
+                   cantidad, fecha_registro,
+                   disponible
+            FROM productos
+            ORDER BY id";
+
+    $registros =
+        $pdo->query($sql)->fetchAll();
+
+} catch (Throwable $e) {
+    error_log(
+        "Error de base de datos: " .
+        $e->getMessage()
+    );
+
+    $error =
+        "No fue posible consultar la base de datos.";
+
+    http_response_code(503);
+}
+
+?>
+\end{lstlisting}
+
+En el documento HTML se utilizó
+un ciclo \texttt{foreach} para
+mostrar los registros obtenidos:
+
+\begin{lstlisting}
+<table>
+<thead>
+<tr>
+    <th>ID</th>
+    <th>Nombre</th>
+    <th>Precio</th>
+    <th>Cantidad</th>
+    <th>Fecha de registro</th>
+    <th>Disponible</th>
+</tr>
+</thead>
+
+<tbody>
+<?php foreach ($registros as $fila): ?>
+<tr>
+    <td><?= escapar($fila['id']) ?></td>
+    <td><?= escapar($fila['nombre']) ?></td>
+    <td><?= escapar($fila['precio']) ?></td>
+    <td><?= escapar($fila['cantidad']) ?></td>
+    <td><?= escapar($fila['fecha_registro']) ?></td>
+    <td>
+        <?= $fila['disponible'] ? 'Si' : 'No' ?>
+    </td>
+</tr>
+<?php endforeach; ?>
+</tbody>
+</table>
+\end{lstlisting}
+
+El código final también incorporó
+estilos CSS para presentar los
+registros en una tabla legible.
+
+La función \texttt{htmlspecialchars}
+se utilizó para evitar que los
+datos recibidos de la base
+se interpretaran como código HTML.
+
+Asimismo, se implementó un mecanismo
+de manejo de excepciones que devuelve
+el estado HTTP 503 si la aplicación
+no consigue consultar la base de datos.
+
+\subsection{Verificación del código}
+
+La sintaxis de la aplicación se
+comprobó con:
+
+\begin{lstlisting}
+php -l /var/www/html/index.php
+\end{lstlisting}
+
+Se obtuvo:
+
+\begin{lstlisting}
+No syntax errors detected
+in /var/www/html/index.php
+\end{lstlisting}
+
+Después se reinició Apache:
+
+\begin{lstlisting}
+sudo systemctl restart apache2
+\end{lstlisting}
+
+Se eliminó la página predeterminada:
+
+\begin{lstlisting}
+sudo rm -f /var/www/html/index.html
+\end{lstlisting}
+
+Finalmente, se utilizó:
+
+\begin{lstlisting}
+curl -i http://localhost/
+\end{lstlisting}
+
+Antes de establecer la conexión
+con el servidor de bases de datos,
+la aplicación devolvió
+\texttt{503 Service Unavailable}.
+
+Una vez configurada la conexión
+remota, la aplicación mostró
+correctamente los registros.
+
+\captura{paginaWeb.png}{
+    Aplicación PHP mostrando los productos
+    consultados desde el servidor remoto.
+}
+
+\section{Pruebas iniciales en red provisional}
+
+Antes de disponer de los routers
+físicos, se realizaron pruebas
+entre ambas máquinas virtuales
+en una red local alternativa.
+
+Las direcciones utilizadas fueron:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Dispositivo} & \textbf{IPv4} \\
+\hline
+Web Server & 10.103.150.187 \\
+\hline
+DB Server & 10.103.150.181 \\
+\hline
+\end{tabular}
+\caption{Direccionamiento provisional
+para las pruebas de aplicación.}
+\end{table}
+
+El archivo de configuración PHP
+se ajustó temporalmente para
+conectarse a \texttt{10.103.150.181}.
+
+Se efectuaron pruebas de conectividad
+y del puerto MySQL:
+
+\begin{lstlisting}
+ping -c 4 10.103.150.181
+
+nc -vz -w 5 10.103.150.181 3306
+\end{lstlisting}
+
+La conexión SQL se comprobó mediante:
+
+\begin{lstlisting}
+mariadb \
+    -h 10.103.150.181 \
+    -u webuser \
+    -p \
+    laboratorio_acl
+\end{lstlisting}
+
+Posteriormente se consultó:
+
+\begin{lstlisting}[language=SQL]
+SELECT * FROM productos;
+\end{lstlisting}
+
+Las pruebas confirmaron que
+la aplicación podía comunicarse
+con el servidor de bases
+de datos a través de la red.
+
+Se comprobó además que la
+página web mostraba los registros
+correctamente.
+
+Esta etapa permitió separar los
+problemas de instalación y
+configuración de servicios
+de los problemas relacionados
+con el enrutamiento físico.
+
+\section{Configuración de OSPF}
+
+Una vez implementada la topología
+en el laboratorio físico, se utilizó
+OSPF para comunicar las redes
+interna y externa.
+
+Ambos routers participaron en
+el área 0 del proceso OSPF 10.
+
+\subsection{Configuración del router RI}
+
+La configuración de referencia
+utilizada para las redes fue:
+
+\begin{lstlisting}
+enable
+configure terminal
+
+hostname RI
+
+interface GigabitEthernet0/0
+ ip address 52.20.30.1 255.255.255.0
+ no shutdown
+ exit
+
+interface Serial0/0/0
+ ip address 200.0.0.1 255.255.255.252
+ no shutdown
+ exit
+
+router ospf 10
+ router-id 1.1.1.1
+ passive-interface GigabitEthernet0/0
+ network 52.20.30.0 0.0.0.255 area 0
+ network 200.0.0.0 0.0.0.3 area 0
+ exit
+
+end
+\end{lstlisting}
+
+\subsection{Configuración del router RE}
+
+\begin{lstlisting}
+enable
+configure terminal
+
+hostname RE
+
+interface GigabitEthernet0/0
+ ip address 140.10.20.1 255.255.255.0
+ no shutdown
+ exit
+
+interface Serial0/0/0
+ ip address 200.0.0.2 255.255.255.252
+ no shutdown
+ exit
+
+router ospf 10
+ router-id 2.2.2.2
+ passive-interface GigabitEthernet0/0
+ network 140.10.20.0 0.0.0.255 area 0
+ network 200.0.0.0 0.0.0.3 area 0
+ exit
+
+end
+\end{lstlisting}
+
+Los nombres de interfaz
+corresponden al esquema de
+configuración propuesto.
+En equipo físico deben coincidir
+con las interfaces instaladas.
+
+\subsection{Verificación del enrutamiento}
+
+Para comprobar OSPF se utilizaron
+los siguientes comandos:
+
+\begin{lstlisting}
+show ip interface brief
+show ip ospf neighbor
+show ip route
+show ip route ospf
+\end{lstlisting}
+
+El resultado esperado consistía
+en establecer una vecindad OSPF
+en estado \texttt{FULL} y
+aprender las redes remotas.
+
+RI debe aprender:
+
+\begin{lstlisting}
+O 140.10.20.0/24
+\end{lstlisting}
+
+RE debe aprender:
+
+\begin{lstlisting}
+O 52.20.30.0/24
+\end{lstlisting}
+
+La comunicación posterior
+entre los servidores ubicados
+en diferentes redes confirmó
+que existía un mecanismo de
+enrutamiento funcional.
+
+\section{Configuración definitiva de los servidores}
+
+Una vez disponibles las interfaces
+y los switches del laboratorio,
+se modificó el direccionamiento
+de los servidores.
+
+Web Server utilizó:
+
+\begin{lstlisting}
+IP:       52.20.30.10
+Mascara:  255.255.255.0
+Gateway:  52.20.30.1
+\end{lstlisting}
+
+DB Server utilizó:
+
+\begin{lstlisting}
+IP:       140.10.20.10
+Mascara:  255.255.255.0
+Gateway:  140.10.20.1
+\end{lstlisting}
+
+La configuración de Ubuntu
+se realizó mediante Netplan.
+
+Para Web Server se utilizó
+una configuración equivalente a:
+
+\begin{lstlisting}
+network:
+  version: 2
+  ethernets:
+    enp0s1:
+      dhcp4: false
+      addresses:
+        - 52.20.30.10/24
+      routes:
+        - to: default
+          via: 52.20.30.1
+\end{lstlisting}
+
+El identificador \texttt{enp0s1}
+es ilustrativo y depende de
+la interfaz de cada máquina virtual.
+
+Los cambios se validaron mediante:
+
+\begin{lstlisting}
+sudo netplan generate
+sudo netplan try
+\end{lstlisting}
+
+Posteriormente se comprobó el
+direccionamiento y la tabla
+de rutas con:
+
+\begin{lstlisting}
+ip -br addr
+ip route
+\end{lstlisting}
+
+También se actualizaron
+los parámetros de conexión
+de PHP, así como la dirección
+de escucha y los permisos del
+servidor MySQL/MariaDB.
+
+
+\section{Pruebas de conectividad previas a las ACL}
+
+Antes de aplicar restricciones
+se comprobó la comunicación
+entre las redes.
+
+Desde Web Server se utilizaron
+comandos como:
+
+\begin{lstlisting}
+ping -c 4 52.20.30.1
+ping -c 4 140.10.20.1
+ping -c 4 140.10.20.10
+\end{lstlisting}
+
+También se verificó la conexión
+al servidor de bases de datos:
+
+\begin{lstlisting}
+mariadb \
+    -h 140.10.20.10 \
+    -u webuser \
+    -p \
+    laboratorio_acl
+\end{lstlisting}
+
+Dentro del gestor se ejecutó:
+
+\begin{lstlisting}[language=SQL]
+SELECT * FROM productos;
+\end{lstlisting}
+
+Finalmente, se comprobó la
+aplicación mediante:
+
+\begin{lstlisting}
+curl -i http://localhost/
+\end{lstlisting}
+
+La página permitió visualizar
+los productos almacenados en
+DB Server.
+
+El funcionamiento de esta
+aplicación sobre la topología
+física confirmó la comunicación
+entre los servidores.
+
+Adicionalmente, se contemplaron
+pruebas ICMP entre PCI y PCE,
+así como entre las estaciones
+y los servidores.
+
+Estas pruebas son necesarias
+para distinguir los bloqueos
+intencionales de las ACL de
+posibles fallos de conectividad.
+
+\captura{pings.png}{
+    Pruebas de conectividad
+    realizadas antes de aplicar ACL.
+}
+
+\section{Políticas de seguridad}
+
+Las políticas establecidas
+para esta práctica fueron:
+
+\begin{enumerate}
+    \item Proteger el acceso a DB Server:
+    únicamente Web Server debe poder
+    establecer comunicación con él.
+
+    \item Permitir las solicitudes
+    de ping desde
+    \texttt{52.20.30.0/24}
+    hacia
+    \texttt{140.10.20.0/24}.
+
+    \item Impedir las solicitudes
+    de ping desde
+    \texttt{140.10.20.0/24}
+    hacia
+    \texttt{52.20.30.0/24}.
+\end{enumerate}
+
+Para implementar estas políticas
+se utilizaron dos ACL extendidas
+sobre el router RE.
+
+Las ACL recibieron los nombres:
+
+\begin{itemize}
+    \item \texttt{BLOQUEAR\_PING\_EXTERNO}.
+    \item \texttt{PROTEGER\_DB}.
+\end{itemize}
+
+Ambas se aplicaron sobre
+la interfaz que conecta
+RE con el switch SE,
+pero en direcciones distintas.
+
+\section{Configuración de ACL extendidas}
+
+\subsection{ACL para bloquear ping desde la red externa}
+
+La primera ACL impide que
+los equipos de la red externa
+inicien solicitudes ICMP
+hacia la red interna.
+
+En RE se configuró:
+
+\begin{lstlisting}
+enable
+configure terminal
+
+ip access-list extended BLOQUEAR_PING_EXTERNO
+ remark Bloquear ping de red externa a interna
+ deny icmp 140.10.20.0 0.0.0.255 52.20.30.0 0.0.0.255 echo
+ remark Permitir respuestas y otros protocolos
+ permit ip any any
+ exit
+\end{lstlisting}
+
+La instrucción \texttt{deny icmp}
+filtra únicamente los mensajes
+de tipo \texttt{echo} que
+coincidan con las direcciones
+de origen y destino indicadas.
+
+Los mensajes \texttt{echo-reply}
+no se bloquean mediante esa regla.
+
+Esto permite que un equipo
+de la red interna inicie un ping
+hacia la red externa y reciba
+su respuesta.
+
+\subsection{ACL para proteger DB Server}
+
+La segunda ACL permite que
+Web Server se comunique con
+DB Server y deniega las
+comunicaciones de otros
+orígenes que atraviesen RE.
+
+\begin{lstlisting}
+ip access-list extended PROTEGER_DB
+ remark Permitir Web Server hacia DB Server
+ permit ip host 52.20.30.10 host 140.10.20.10
+
+ remark Denegar otros origenes hacia DB
+ deny ip any host 140.10.20.10
+
+ remark Permitir el resto del trafico
+ permit ip any any
+ exit
+\end{lstlisting}
+
+La primera regla:
+
+\begin{lstlisting}
+permit ip host 52.20.30.10 host 140.10.20.10
+\end{lstlisting}
+
+permite el tráfico IPv4
+originado específicamente
+por Web Server y dirigido
+a DB Server.
+
+La segunda regla:
+
+\begin{lstlisting}
+deny ip any host 140.10.20.10
+\end{lstlisting}
+
+bloquea el resto del tráfico
+con destino a DB Server
+cuando dicho tráfico
+atraviesa la interfaz
+controlada por la ACL.
+
+La instrucción final:
+
+\begin{lstlisting}
+permit ip any any
+\end{lstlisting}
+
+permite el tráfico que no
+coincide con las reglas anteriores.
+
+Sin esta instrucción,
+el \textit{deny} implícito
+de la ACL podría bloquear
+otras comunicaciones legítimas.
+
+\subsection{Aplicación de las ACL}
+
+Las dos ACL se asociaron
+a la interfaz LAN de RE.
+
+\begin{lstlisting}
+interface GigabitEthernet0/0
+ ip access-group BLOQUEAR_PING_EXTERNO in
+ ip access-group PROTEGER_DB out
+ exit
+
+end
+\end{lstlisting}
+
+La primera se aplica
+en dirección de entrada,
+mientras que la segunda
+se aplica en dirección
+de salida.
+
+La ACL de entrada analiza
+el tráfico recibido desde SE.
+
+La ACL de salida analiza
+el tráfico que RE entrega
+hacia la red externa.
+
+Finalmente, se guardó
+la configuración:
+
+\begin{lstlisting}
+copy running-config startup-config
+\end{lstlisting}
+
+\subsection{Verificación de las ACL}
+
+Para revisar las reglas
+se utilizaron los comandos:
+
+\begin{lstlisting}
+show ip access-lists
+show ip interface GigabitEthernet0/0
+\end{lstlisting}
+
+El resultado esperado incluye:
+
+\begin{lstlisting}
+Inbound access list is BLOQUEAR_PING_EXTERNO
+Outgoing access list is PROTEGER_DB
+\end{lstlisting}
+
+El comando \texttt{show ip access-lists}
+permite observar las reglas
+y sus contadores de coincidencias.
+
+Estos contadores ayudan
+a identificar qué entradas
+están permitiendo o denegando
+el tráfico.
+
+\section{Consideración sobre el tráfico local}
+
+Una observación importante
+de esta topología es que
+PCE y DB Server se encuentran
+en la misma subred:
+
+\begin{lstlisting}
+140.10.20.0/24
+\end{lstlisting}
+
+Ambos dispositivos están
+conectados al switch SE.
+
+Por lo tanto, las comunicaciones
+directas entre estos equipos
+no requieren atravesar
+el router RE.
+
+Esto significa que
+las ACL configuradas
+en RE no pueden filtrar
+por sí solas el tráfico
+local entre PCE y DB Server.
+
+Para implementar completamente
+la política de protección
+del servidor se requiere
+un mecanismo adicional.
+
+Una alternativa consiste
+en configurar reglas de firewall
+en Ubuntu Server para permitir
+únicamente conexiones autorizadas
+desde Web Server.
+
+Otra alternativa consiste
+en modificar la topología
+y separar PCE y DB Server
+en diferentes VLAN o subredes,
+obligando a enrutar su tráfico.
+
+Esta limitación debe
+considerarse al evaluar
+el cumplimiento de la
+primera política de seguridad.
+
+La configuración de las ACL
+en RE protege las comunicaciones
+enrutadas hacia DB Server,
+pero no sustituye el filtrado
+local en la misma VLAN.
+
+\section{Pruebas posteriores a las ACL}
+
+Después de aplicar las ACL,
+las pruebas deben comprobar
+que los flujos autorizados
+continúan funcionando y
+que los flujos restringidos
+son bloqueados.
+
+Los resultados esperados
+según las políticas son:
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Origen} &
+\textbf{Destino} &
+\textbf{Protocolo} &
+\textbf{Esperado} \\
+\hline
+PCI & PCE & ICMP & Permitido \\
+\hline
+PCE & PCI & ICMP & Denegado \\
+\hline
+PCE & Web Server & ICMP & Denegado \\
+\hline
+Web Server & DB Server & ICMP & Permitido \\
+\hline
+PCI & DB Server & ICMP & Denegado \\
+\hline
+Web Server & DB Server & TCP 3306 & Permitido \\
+\hline
+PCI & DB Server & TCP 3306 & Denegado \\
+\hline
+PCI & Web Server & HTTP & Permitido \\
+\hline
+PCE & Web Server & HTTP & Permitido \\
+\hline
+\end{tabular}
+\caption{Matriz de resultados esperados
+después de aplicar las ACL.}
+\end{table}
+
+La restricción PCE--DB Server
+necesita una verificación
+independiente del firewall
+del servidor, al tratarse
+de tráfico dentro de la
+misma red local.
+
+\subsection{Pruebas ICMP}
+
+Para comprobar el filtrado
+se utilizaron solicitudes
+de ping desde diferentes
+equipos.
+
+Una prueba especialmente
+importante consiste en
+comparar las siguientes
+comunicaciones:
+
+\begin{itemize}
+    \item PCI hacia PCE:
+    debe estar permitida.
+
+    \item PCE hacia PCI:
+    debe estar denegada.
+\end{itemize}
+
+Esta diferencia demuestra
+que la ACL distingue
+el sentido de la solicitud ICMP.
+
+También deben comprobarse
+las solicitudes dirigidas
+al servidor de bases de datos.
+
+\subsection{Pruebas del servicio MySQL}
+
+Desde Web Server se utilizó
+el cliente MySQL/MariaDB
+para establecer una conexión
+con DB Server:
+
+\begin{lstlisting}
+mariadb \
+    -h 140.10.20.10 \
+    -u webuser \
+    -p \
+    laboratorio_acl
+\end{lstlisting}
+
+La consulta de los productos
+permite comprobar que las reglas
+de seguridad no impiden
+el servicio autorizado.
+
+\begin{lstlisting}[language=SQL]
+SELECT * FROM productos;
+\end{lstlisting}
+
+\subsection{Pruebas del servicio HTTP}
+
+La aplicación web se verificó
+mediante:
+
+\begin{lstlisting}
+curl -i http://localhost/
+\end{lstlisting}
+
+El funcionamiento correcto
+de la página confirma
+la ejecución de PHP
+y la recuperación de los
+registros de la base de datos.
+
+El acceso desde otras estaciones
+se realizó mediante la dirección:
+
+\begin{lstlisting}
+http://52.20.30.10/
+\end{lstlisting}
+
+El servicio HTTP
+utiliza un flujo distinto
+del utilizado para la conexión SQL.
+
+Por ello, las políticas
+pueden permitir el acceso
+a la página web sin autorizar
+una conexión directa a
+la base de datos.
+
+\section{Inserción de un registro de prueba}
+
+Como verificación adicional
+de la integración entre
+la aplicación web y
+la base de datos,
+se preparó una instrucción
+SQL para registrar un
+nuevo producto.
+
+Dentro de MySQL/MariaDB
+se seleccionó la base:
+
+\begin{lstlisting}[language=SQL]
+USE laboratorio_acl;
+\end{lstlisting}
+
+La instrucción de inserción
+utilizada como prueba fue:
+
+\begin{lstlisting}[language=SQL]
+INSERT INTO productos
+(nombre, precio, cantidad, fecha_registro, disponible)
+VALUES
+('Laptop Dell', 15999.99, 10, CURDATE(), 1);
+\end{lstlisting}
+
+Esta instrucción supone
+que el campo \texttt{id}
+se genera automáticamente.
+
+Si el campo no utiliza
+\texttt{AUTO\_INCREMENT},
+debe proporcionarse
+un identificador único.
+
+La consulta posterior fue:
+
+\begin{lstlisting}[language=SQL]
+SELECT * FROM productos;
+\end{lstlisting}
+
+Al actualizar la página web,
+el registro nuevo debe aparecer
+en la tabla sin necesidad
+de modificar el código PHP
+ni reiniciar Apache.
+
+Esta prueba permite comprobar
+que la información presentada
+es obtenida dinámicamente
+desde la base de datos
+y no está escrita directamente
+en el documento HTML.
+
+\captura{insertProducto.png}{
+    Registro de un nuevo producto
+    mediante una instrucción SQL.
+}
+
+\section{Análisis de resultados}
+
+La implementación permitió integrar
+servicios de aplicación con
+mecanismos de enrutamiento
+y control de acceso.
+
+En la etapa inicial se comprobó
+el funcionamiento de Apache
+y PHP mediante una solicitud
+HTTP local.
+
+Posteriormente, se estableció
+comunicación entre Web Server
+y DB Server utilizando
+MySQL/MariaDB.
+
+La aplicación mostró correctamente
+los registros obtenidos de
+la tabla \texttt{productos}.
+
+Al trasladar ambos servidores
+a la topología física,
+se mantuvo el funcionamiento
+de la comunicación entre
+aplicación y base de datos.
+
+En cuanto al filtrado,
+se configuraron dos ACL
+extendidas sobre RE.
+
+La primera establece
+un bloqueo específico
+de solicitudes ICMP
+originadas desde la
+red externa.
+
+La segunda restringe
+el tráfico enrutado
+hacia DB Server,
+autorizando las comunicaciones
+procedentes de Web Server.
+
+La correcta evaluación
+de estas políticas requiere
+comparar los resultados
+de las pruebas anteriores
+y posteriores a la configuración.
+
+Los contadores de coincidencias
+de las ACL constituyen
+evidencia adicional para
+determinar si las reglas
+están procesando el tráfico.
+
+Debe resaltarse que
+el comportamiento de los
+equipos dentro de una misma
+subred no puede controlarse
+mediante las ACL de RE
+si sus paquetes no atraviesan
+dicho router.
+
+Por lo tanto, el cumplimiento
+total de la restricción
+de acceso a DB Server
+requiere revisar también
+las reglas de seguridad
+del sistema operativo
+o modificar la segmentación
+de la red.
+
+\section{Conclusiones}
+
+Durante esta práctica
+se integraron conocimientos
+de direccionamiento IPv4,
+enrutamiento dinámico,
+servicios web,
+bases de datos y
+seguridad de redes.
+
+La instalación de Apache
+y PHP permitió implementar
+una aplicación web funcional
+capaz de consultar información
+almacenada en un servidor remoto.
+
+La utilización de PDO
+facilitó la conexión
+con MySQL/MariaDB,
+mientras que la separación
+de las credenciales
+en un archivo externo
+mejoró la organización
+de la aplicación.
+
+La implementación de OSPF
+permitió comunicar
+las redes interna y externa,
+proporcionando una base
+para evaluar el comportamiento
+de las listas de control
+de acceso.
+
+Las ACL extendidas
+permitieron establecer
+reglas específicas
+considerando direcciones
+de origen y destino,
+protocolos y tipos
+de mensajes ICMP.
+
+Una de las principales
+observaciones fue
+la importancia del sentido
+de aplicación de una ACL.
+
+Una misma interfaz
+puede aplicar reglas
+diferentes al tráfico
+entrante y saliente,
+permitiendo adaptar
+el filtrado a los
+requisitos de seguridad.
+
+También se identificó
+una limitación importante:
+los paquetes intercambiados
+entre dispositivos
+de una misma VLAN
+no necesariamente atraviesan
+el router donde están
+configuradas las ACL.
+
+Por ello, el diseño
+de políticas de seguridad
+debe considerar no solamente
+las direcciones IP,
+sino también la topología
+y los recorridos reales
+del tráfico.
+
+Finalmente, la práctica
+demostró que es posible
+combinar mecanismos
+de filtrado en routers
+con servicios de aplicación,
+manteniendo las comunicaciones
+autorizadas y restringiendo
+aquellas que no forman parte
+de las políticas establecidas.
+
+\section{Evidencias}
+
+\captura{evidencias1.png}{
+Evidencia 1
+}
+\captura{evidencias2.png}{
+Evidencia 2
+}
+\captura{evidencias3.png}{
+Evidencia 3
+}
+\captura{evidencias4.png}{
+Evidencia 4
+}
+\end{document}

@@ -1,0 +1,164 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot]{babel}
+\usepackage{geometry,amsmath,amssymb,booktabs,float}
+\usepackage{tikz,pgfplots}
+\usetikzlibrary{arrows.meta,positioning,babel}
+\pgfplotsset{compat=1.18}
+\usepackage[hidelinks]{hyperref}
+\geometry{margin=2.5cm}
+\title{Tarea 1\\\large Solución de ejercicios de redes y probabilidad}
+\author{Jorge Alberto Suárez Saldaña}
+\date{\today}
+\begin{document}
+\maketitle
+
+\section{Red no dirigida (figura 1)}
+La red consta de $N=6$ nodos y $M=10$ aristas:
+\[
+E=\{ab,ae,af,bc,bd,be,cd,ce,df,ef\}.
+\]
+\begin{figure}[H]\centering
+\begin{tikzpicture}[every node/.style={circle,draw,fill=black,inner sep=3pt},scale=1]
+\node[label=above:$a$] (a) at (0,1.3) {};
+\node[label=above:$b$] (b) at (2.5,2.5) {};
+\node[label=right:$c$] (c) at (4.5,1) {};
+\node[label=above:$d$] (d) at (5.4,2.9) {};
+\node[label=below:$e$] (e) at (2.1,-0.6) {};
+\node[label=below:$f$] (f) at (5,-1.4) {};
+\draw (a)--(b) (a)--(e) (a) to[bend right=32] (f) (b)--(c) (b)--(d) (b)--(e) (c)--(d) (c)--(e) (d)--(f) (e)--(f);
+\end{tikzpicture}
+\caption{Representación de la red no dirigida.}
+\end{figure}
+\subsection*{a) Matriz de adyacencia}
+\[
+A=\begin{pmatrix}
+0&1&0&0&1&1\\
+1&0&1&1&1&0\\
+0&1&0&1&1&0\\
+0&1&1&0&0&1\\
+1&1&1&0&0&1\\
+1&0&0&1&1&0
+\end{pmatrix}.
+\]
+La matriz es simétrica, como corresponde a una red no dirigida.
+\subsection*{b) Grado promedio}
+Los grados de $(a,b,c,d,e,f)$ son $(3,4,3,3,4,3)$. Por el lema del apretón de manos,
+\[
+\boxed{\langle k\rangle=\frac{\sum_i k_i}{N}=\frac{2M}{N}=\frac{20}{6}=\frac{10}{3}\approx3.3333.}
+\]
+\subsection*{c) Densidad}
+Para un grafo simple no dirigido sin lazos, hay $N(N-1)/2$ aristas posibles. Así,
+\[
+\boxed{D=\frac{2M}{N(N-1)}=\frac{20}{6\cdot5}=\frac23\approx0.6667.}
+\]
+\subsection*{d) Distribución de grados}
+Hay cuatro vértices de grado $3$ y dos de grado $4$. La distribución empírica es $P(3)=4/6$ y $P(4)=2/6$.
+\begin{figure}[H]\centering
+\begin{tikzpicture}
+\begin{axis}[ybar,bar width=18pt,width=.80\textwidth,height=6cm,xlabel={Grado $k$},ylabel={Número de nodos},xtick={0,1,2,3,4,5},ymin=0,ymax=5,ytick={0,1,2,3,4,5},nodes near coords,grid=major]
+\addplot coordinates {(0,0)(1,0)(2,0)(3,4)(4,2)(5,0)};
+\end{axis}
+\end{tikzpicture}
+\caption{Frecuencias de grados de la red no dirigida.}
+\end{figure}
+
+\section{Red dirigida (figura 2)}
+La red tiene $N=6$ vértices. La figura contiene dos arcos paralelos $b\to c$. Contando ambos, se identifican $M=14$ arcos:
+\[
+\begin{aligned}
+&a\to e,\ a\to f,\quad b\to a,\ b\to e,\ b\to c\ (\text{dos veces}),\\
+&c\to b,\ c\to d,\quad d\to b,\ d\to f,\quad
+ e\to b,\ e\to c,\quad f\to d,\ f\to e.
+\end{aligned}
+\]
+\begin{figure}[H]\centering
+\begin{tikzpicture}[>=Stealth,every node/.style={circle,draw,fill=black,inner sep=3pt},scale=1]
+\node[label=above:$a$] (a) at (0,1.2) {};
+\node[label=above:$b$] (b) at (2.6,2.5) {};
+\node[label=right:$c$] (c) at (4.5,1.25) {};
+\node[label=above:$d$] (d) at (5.5,3) {};
+\node[label=below:$e$] (e) at (2.15,-.65) {};
+\node[label=below:$f$] (f) at (5.15,-1.5) {};
+\draw[->] (b)--(a);
+\draw[->] (a)--(e);
+\draw[->] (a) to[bend right=31] (f);
+\draw[->] (b) to[bend right=22] (e);
+\draw[->] (e)--(b);
+\draw[->] (b)--(c);
+\draw[->] (b) to[bend right=27] (c);
+\draw[->] (c) to[bend right=24] (b);
+\draw[->] (c)--(d);
+\draw[->] (d)--(b);
+\draw[->] (d)--(f);
+\draw[->] (f) to[bend right=24] (d);
+\draw[->] (e)--(c);
+\draw[->] (f)--(e);
+\end{tikzpicture}
+\caption{Reconstrucción de la red dirigida con sus 14 arcos.}
+\end{figure}
+\subsection*{a) Matriz de adyacencia}
+La entrada $(b,c)$ vale $2$ porque existen dos arcos desde $b$ hasta $c$:
+\[
+A=\begin{pmatrix}
+0&0&0&0&1&1\\
+1&0&2&0&1&0\\
+0&1&0&1&0&0\\
+0&1&0&0&0&1\\
+0&1&1&0&0&0\\
+0&0&0&1&1&0
+\end{pmatrix}.
+\]
+\subsection*{b) Grado medio de entrada y de salida}
+Las sumas de filas dan $k^{\mathrm{out}}=(2,4,2,2,2,2)$, y las de columnas dan $k^{\mathrm{in}}=(1,3,3,2,3,2)$. Cada arco suma una unidad a cada total, por lo que
+\[
+\boxed{\langle k^{\mathrm{in}}\rangle=\langle k^{\mathrm{out}}\rangle=\frac{M}{N}=\frac{14}{6}=\frac73\approx2.3333.}
+\]
+\subsection*{c) Densidad}
+Una red dirigida simple sin lazos admite $N(N-1)=30$ pares ordenados distintos. Si se utiliza el cociente de \emph{arcos totales} respecto a esos pares (contando multiplicidad),
+\[
+\boxed{D_{\text{con multiplicidad}}=\frac{14}{30}=\frac7{15}\approx0.4667.}
+\]
+En cambio, la definición usual de densidad para un \emph{grafo dirigido simple} primero ignora los arcos paralelos. Como existen 13 pares ordenados conectados distintos,
+\[
+\boxed{D_{\text{grafo simple subyacente}}=\frac{13}{30}\approx0.4333.}
+\]
+Se incluyen ambos valores para precisar la convención utilizada.
+\subsection*{d) Distribución de grados de entrada}
+Las frecuencias son: un nodo con grado de entrada $1$, dos con grado $2$ y tres con grado $3$.
+\begin{figure}[H]\centering
+\begin{tikzpicture}\begin{axis}[ybar,bar width=18pt,width=.80\textwidth,height=5.8cm,xlabel={Grado de entrada $k^{\mathrm{in}}$},ylabel={Número de nodos},xtick={0,1,2,3,4},ymin=0,ymax=4,ytick={0,1,2,3,4},nodes near coords,grid=major]\addplot coordinates {(0,0)(1,1)(2,2)(3,3)(4,0)};\end{axis}\end{tikzpicture}
+\caption{Distribución de grados de entrada.}
+\end{figure}
+\subsection*{e) Distribución de grados de salida}
+Cinco vértices tienen grado de salida $2$ y uno tiene grado de salida $4$.
+\begin{figure}[H]\centering
+\begin{tikzpicture}\begin{axis}[ybar,bar width=18pt,width=.80\textwidth,height=5.8cm,xlabel={Grado de salida $k^{\mathrm{out}}$},ylabel={Número de nodos},xtick={0,1,2,3,4,5},ymin=0,ymax=6,ytick={0,1,2,3,4,5,6},nodes near coords,grid=major]\addplot coordinates {(0,0)(1,0)(2,5)(3,0)(4,1)(5,0)};\end{axis}\end{tikzpicture}
+\caption{Distribución de grados de salida.}
+\end{figure}
+
+\section{Probabilidad de usuarios transmitiendo en una LAN}
+Se comparte un enlace de $1\,\mathrm{Gbps}=1000\,\mathrm{Mbps}$, cada usuario activo requiere $50\,\mathrm{Mbps}$ y transmite el $15\%$ del tiempo. Supondremos independencia entre usuarios y probabilidades constantes de transmisión, como requiere el modelo binomial. El enlace permite $1000/50=20$ usuarios simultáneos sin exceder su capacidad nominal.
+\subsection*{a) Probabilidad individual de transmisión}
+\[\boxed{p=0.15=15\%.}\]
+\subsection*{b) Probabilidad de exactamente $n$ usuarios activos}
+Sea $X$ el número de usuarios transmitiendo de un total de 90. Entonces
+\[
+X\sim\operatorname{Binomial}(90,0.15),\qquad
+\boxed{P(X=n)=\binom{90}{n}(0.15)^n(0.85)^{90-n}},
+\]
+para $n=0,1,\ldots,90$, donde
+\[\binom{90}{n}=\frac{90!}{n!(90-n)!}.\]
+Su esperanza es $E[X]=90(0.15)=13.5$ usuarios.
+\subsection*{c) Probabilidad de al menos 21 usuarios activos}
+Como 21 transmisiones requieren $21(50)=1050\,\mathrm{Mbps}>1000\,\mathrm{Mbps}$, se solicita la cola de la distribución binomial:
+\[
+\begin{aligned}
+P(X\ge21)&=\sum_{n=21}^{90}\binom{90}{n}(0.15)^n(0.85)^{90-n}\\
+&=1-\sum_{n=0}^{20}\binom{90}{n}(0.15)^n(0.85)^{90-n}\\
+&\approx \boxed{0.0240055892\approx 0.0240=2.40\%.}
+\end{aligned}
+\]
+Este resultado coincide con la respuesta aproximada indicada en el documento. Significa que bajo el modelo binomial, alrededor de $2.4\%$ de los instantes habrá al menos 21 usuarios transmitiendo, por lo que la demanda simultánea superaría $1\,\mathrm{Gbps}$.
+\end{document}

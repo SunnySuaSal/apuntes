@@ -1,0 +1,307 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot]{babel}
+\usepackage{geometry,graphicx,float,booktabs,array,longtable,xcolor,listings,hyperref,fancyhdr,titlesec}
+\geometry{top=2.5cm,bottom=2.5cm,left=2.5cm,right=2.5cm}
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+\definecolor{codebg}{RGB}{245,247,250}
+\definecolor{codeframe}{RGB}{205,213,220}
+\lstdefinestyle{terminal}{basicstyle=\ttfamily\footnotesize,breaklines=true,breakatwhitespace=false,columns=fullflexible,keepspaces=true,showstringspaces=false,backgroundcolor=\color{codebg},frame=single,rulecolor=\color{codeframe},xleftmargin=0.4em,xrightmargin=0.4em}
+\lstset{style=terminal}
+\pagestyle{fancy}\fancyhf{}\lhead{OpenHPC 4.1 -- Confluent/Slurm}\rhead{Supercómputo}\cfoot{\thepage}
+\newcommand{\evidencia}[2]{\begin{figure}[H]\centering\IfFileExists{#1}{\includegraphics[width=0.92\linewidth]{#1}}{\fbox{\parbox[c][4cm][c]{0.85\linewidth}{\centering Evidencia pendiente: \texttt{\detokenize{#1}}}}}\caption{#2}\end{figure}}
+\title{\textbf{Reporte técnico de laboratorio}\\[0.4em]\Large Implementación y diagnóstico de un clúster OpenHPC 4.1 con Rocky Linux 10, Confluent y Slurm}
+\author{Jorge Alberto Suarez Saldana Matrícula: 355992\\
+Eduardo Ledezma Olguín Matrícula: 318284\\
+Severo Alejandro Rosales Barcenas Matrícula: 347717\\
+Diego Gael Tapia Guerrero Matrícula: 351657\\
+Asignatura: Supercómputo}
+\date{Octubre de 2026}
+\begin{document}
+\maketitle
+\begin{abstract}
+Se documenta el diseño, preparación y diagnóstico de un clúster académico basado en OpenHPC 4.1, Rocky Linux 10 y el aprovisionador Lenovo Confluent. El nodo de administración \texttt{sms} utiliza arquitectura ARM64 (aarch64) y los nodos de cómputo usan x86\_64. Se describe la red privada, la importación de una distribución para despliegue, la definición de nodos, los avances en PXE/iPXE y los fallos encontrados. Al cierre de este reporte no se había verificado un despliegue PXE completo ni la operación distribuida de Slurm; se preserva esa distinción para evitar reportar resultados no obtenidos.
+\end{abstract}
+\tableofcontents\newpage
+
+\section{Objetivos}
+\begin{itemize}
+\item Diseñar una red privada para la comunicación entre el nodo de administración y los nodos de cómputo.
+\item Preparar OpenHPC 4.1 y Confluent sobre Rocky Linux 10 en un nodo ARM64.
+\item Registrar nodos x86\_64, asociar una imagen de instalación y probar el arranque por red.
+\item Diagnosticar fallos de conectividad, PXE/iPXE y certificados TLS.
+\item Dejar documentados los pasos pendientes para integrar NFS, Munge y Slurm.
+\end{itemize}
+
+\section{Metodología y correspondencia con la guía OpenHPC}
+\label{sec:metodologia}
+El procedimiento tomó como referencia la guía \emph{OpenHPC 4.1 Cluster Building Recipes: Rocky 10 Base OS, Confluent/Slurm Edition for Linux (aarch64)}, particularmente la secuencia de las secciones 5.1--5.6, destinada a preparar el nodo de administración y el aprovisionamiento de los nodos de cómputo. Se conservaron sus objetivos y herramientas, pero se adecuaron la arquitectura de los nodos, el direccionamiento y la operación del arranque a las limitaciones del laboratorio.
+
+\begin{longtable}{p{2.0cm}p{4.0cm}p{6.3cm}}
+\caption{Correspondencia funcional con los pasos 5.1--5.6 de la guía y adaptaciones realizadas.}\label{tab:metodologia}\\
+\toprule
+Referencia & Actividad documentada & Ejecución y adaptación en el laboratorio \\
+\midrule\endfirsthead
+\toprule
+Referencia & Actividad documentada & Ejecución y adaptación en el laboratorio \\
+\midrule\endhead
+5.1--5.2 & Preparación del nodo de administración, conectividad y servicios base de despliegue. & Se trabajó con Rocky Linux 10.2 en \texttt{sms} (aarch64), dos interfaces y red privada \texttt{10.0.0.0/24}. Se inicializó Confluent con \texttt{osdeploy initialize -usklpta}. La IP privada cambió durante la práctica de \texttt{10.1.1.1} a \texttt{10.0.0.1}. \\
+5.3--5.4 & Preparación de una distribución y de un perfil para el aprovisionamiento. & Se importó la ISO \texttt{Rocky-10.2-x86\_64-dvd1.iso}; el perfil resultante fue \texttt{rocky-10.2-x86\_64-default}. Esta selección de \texttt{x86\_64}, distinta de la arquitectura \texttt{aarch64} de \texttt{sms}, fue una adaptación esencial. Se ajustaron los argumentos del núcleo y se ejecutó \texttt{osdeploy updateboot}. \\
+5.5--5.6 & Definición de nodos, asignación de perfil e intento de aprovisionamiento por red. & Se registraron \texttt{c2}, \texttt{c3} y \texttt{c4} con MAC e IP estáticas mediante \texttt{nodedefine}, se creó el grupo \texttt{compute} y se ejecutó \texttt{nodedeploy}. Dado que las VMs carecen de BMC/IPMI, el arranque PXE se seleccionó manualmente; \texttt{nodesetboot} no pudo operar remotamente. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Criterio de validación}
+Se consideró una etapa verificada únicamente cuando hubo una salida observable: la importación y listado del perfil de despliegue, los atributos registrados en Confluent o la transferencia TFTP indicada en el registro. La obtención de \texttt{ipxe.efi} no se equiparó con un arranque satisfactorio del sistema operativo, ni la existencia de \texttt{slurm.conf} con un clúster Slurm operativo.
+
+\section{Arquitectura y recursos}
+El clúster se diseñó con un nodo de administración \texttt{sms} y tres nodos de cómputo \texttt{c2}, \texttt{c3} y \texttt{c4}, consistiendo todos en máquinas virtuales dentro de las laptops personales de los autores; conectados a un switch Ethernet. \texttt{sms} también dispone de una interfaz externa para acceder a repositorios y servicios fuera de la red privada. No se utiliza un router en la red privada para la comunicación entre nodos del mismo segmento.
+
+\begin{table}[H]\centering\small\caption{Direccionamiento planificado y utilizado en las pruebas.}
+\begin{tabular}{llll}\toprule
+Equipo & Función & IP privada & Arquitectura \\\midrule
+\texttt{sms} & Administración & 10.0.0.1/24 & aarch64 \\
+\texttt{c2} & Cómputo & 10.0.0.11/24 & x86\_64 \\
+\texttt{c3} & Cómputo & 10.0.0.12/24 & x86\_64 \\
+\texttt{c4} & Cómputo & 10.0.0.13/24 & x86\_64 \\\bottomrule
+\end{tabular}\end{table}
+
+En \texttt{sms}, la interfaz \texttt{enp0s1} se empleó para la red externa, con dirección observada \texttt{192.168.64.3/24} y puerta de enlace \texttt{192.168.64.1}; \texttt{enp0s2} se configuró para la red privada \texttt{10.0.0.1/24}. La puerta de enlace predeterminada corresponde únicamente a la interfaz externa.
+
+\evidencia{topologia.png}{Topología del clúster y conexiones físicas/virtuales.}
+\evidencia{direccionamiento.png}{Interfaces y rutas del nodo de administración.}
+\evidencia{conf_redes_sms.png}{Comprobación de configuración de red en SMS}
+
+\subsection{Inventario de cómputo}
+\begin{table}[H]\centering\small\caption{Características registradas durante el laboratorio.}
+\begin{tabular}{p{1.3cm}p{3.6cm}p{2cm}p{4.3cm}}\toprule
+Nodo & Procesador/entorno & vCPU & RAM / observaciones \\\midrule
+\texttt{sms} & VM ARM64 sobre Mac M1 & 4 & Aproximadamente 3.5 GiB \\
+\texttt{c2} & Intel Core Ultra 9 185H & 4 & Aproximadamente 3.6 GiB \\
+\texttt{c3} & AMD Ryzen 5 5500U & 4 & Aproximadamente 7.5 GiB \\
+\texttt{c4} (inicial) & Intel Core i9-14900HX & 8 & Aproximadamente 7.5 GiB \\
+\texttt{c4} (VMware) & AMD Ryzen 5 5500U & 4 & 7.5 GiB; 4 sockets virtuales de 1 núcleo \\\bottomrule
+\end{tabular}\end{table}
+
+\section{Preparación del nodo de administración}
+Se utilizó Rocky Linux 10.2 en arquitectura \texttt{aarch64} y la guía \emph{OpenHPC 4.1 Cluster Building Recipes, Rocky 10 Base OS, Confluent/Slurm Edition}. Se adaptó el procedimiento porque los nodos de cómputo son \texttt{x86\_64}, no ARM64, y las máquinas virtuales no ofrecen BMC/IPMI para control remoto de energía.
+
+\subsection{Verificación de interfaces y rutas}
+\begin{lstlisting}
+ip -br addr
+ip route
+nmcli device status
+ping -c 4 10.0.0.1
+\end{lstlisting}
+Al inicio, el nodo de administración utilizó otra dirección privada (\texttt{10.1.1.1/24}). Posteriormente se adoptó \texttt{10.0.0.1/24}. Esta modificación es importante para explicar los problemas posteriores con el certificado TLS, que había sido emitido con la dirección anterior.
+
+\subsection{Servicios y repositorios}
+Se instalaron y prepararon componentes de OpenHPC, Confluent, Slurm y los servicios asociados. La exportación NFS del nodo de administración incluyó los directorios \texttt{/home} y \texttt{/opt/ohpc/pub}, este último en modo de solo lectura. Se preparó el archivo de configuración de Slurm a partir del ejemplo proporcionado por OpenHPC.
+
+\begin{lstlisting}
+# Comprobaciones de servicios y configuracion
+systemctl status sshd
+systemctl status nfs-server
+ls -l /etc/slurm/slurm.conf
+cat /etc/exports
+\end{lstlisting}
+No se afirma aquí que los servicios de todos los nodos de cómputo hayan quedado instalados y operativos, ya que el aprovisionamiento se interrumpió antes de completar esa fase.
+
+\section{Configuración de Confluent}
+\subsection{Inicialización e importación de Rocky Linux x86\_64}
+Se inicializó el repositorio de despliegue y se importó una imagen ISO de Rocky Linux 10.2 para \texttt{x86\_64}, necesaria para los nodos de cómputo pese a que \texttt{sms} es ARM64.
+\begin{lstlisting}
+sudo osdeploy initialize -usklpta
+sudo osdeploy import /home/ssaldana/Rocky-10.2-x86_64-dvd1.iso
+sudo restorecon -Rv /var/lib/confluent/
+osdeploy list
+\end{lstlisting}
+La importación generó el perfil \texttt{rocky-10.2-x86\_64-default}. Se comprobó además la presencia de componentes de Confluent para despliegues x86\_64 y aarch64.
+
+\subsection{Argumentos del núcleo de instalación}
+Se ajustaron los argumentos de arranque en el perfil y se regeneró su información de arranque:
+\begin{lstlisting}
+sudo yq -i '.kernelargs = "console=ttyS0,115200 console=tty0 rd.shell"' \
+  /var/lib/confluent/public/os/rocky-10.2-x86_64-default/profile.yaml
+sudo osdeploy updateboot rocky-10.2-x86_64-default
+\end{lstlisting}
+Se contempló sincronizar \texttt{/etc/hosts} mediante el archivo de \texttt{syncfiles}, de modo que los nodos resolvieran los nombres internos del clúster.
+
+\subsection{Definición de nodos y direcciones MAC}
+Se creó el grupo \texttt{compute} y se registraron los nodos con direcciones estáticas y arranque por red:
+\begin{lstlisting}
+sudo nodegroupdefine compute
+sudo nodedefine c2 groups=everything,compute \
+  net.hwaddr=08:00:27:f1:b2:49 net.bootable=true \
+  net.ipv4_method=static net.ipv4_address=10.0.0.11/24
+sudo nodedefine c3 groups=everything,compute \
+  net.hwaddr=08:00:27:e5:0c:bb net.bootable=true \
+  net.ipv4_method=static net.ipv4_address=10.0.0.12/24
+sudo nodedefine c4 groups=everything,compute \
+  net.hwaddr=08:00:27:ac:d2:d9 net.bootable=true \
+  net.ipv4_method=static net.ipv4_address=10.0.0.13/24
+sudo nodedeploy -n compute -p rocky-10.2-x86_64-default
+\end{lstlisting}
+La asignación de imagen se reflejó en los atributos de los nodos. Se eliminó además un valor de puerta de enlace heredado que todavía apuntaba a la antigua red privada:
+\begin{lstlisting}
+sudo nodegroupattrib everything net.ipv4_gateway=
+\end{lstlisting}
+\evidencia{confluent_nodos1.png}{Atributos y perfiles de despliegue de los nodos en Confluent.}
+\evidencia{confluent_nodos2.png}{Atributos y perfiles de despliegue de los nodos en Confluent (continuación).}
+
+
+\section{Configuración inicial de Slurm}
+Se preparó una configuración en la que \texttt{sms} actúa como controlador y \texttt{c2--c4} como nodos de ejecución. La siguiente versión refleja el inventario inicial, antes de la migración de \texttt{c4}:
+\begin{lstlisting}
+SlurmctldHost=sms
+NodeName=c2 Sockets=1 CoresPerSocket=4 ThreadsPerCore=1 State=UNKNOWN
+NodeName=c3 Sockets=1 CoresPerSocket=4 ThreadsPerCore=1 State=UNKNOWN
+NodeName=c4 Sockets=1 CoresPerSocket=8 ThreadsPerCore=1 State=UNKNOWN
+PartitionName=normal Nodes=c[2-4] Default=YES MaxTime=24:00:00 State=UP Oversubscribe=EXCLUSIVE
+\end{lstlisting}
+
+\section{Pruebas de PXE/iPXE y problemas encontrados}
+\subsection{Limitación del control remoto de energía}
+La guía de referencia presupone acceso a mecanismos BMC/IPMI. El comando de control de arranque por red produjo un tiempo de espera en las VMs:
+\begin{lstlisting}
+nodesetboot compute network
+\end{lstlisting}
+Se determinó que las máquinas virtuales del laboratorio no proporcionaban BMC. Por tanto, el encendido y la selección del arranque PXE debían realizarse manualmente en el hipervisor de cada compañero. No se consideró este tiempo de espera un fallo de Confluent por sí solo.
+
+\subsection{Transferencia confirmada de iPXE y acceso a Anaconda en una prueba}
+En una prueba inicial de \texttt{c4}, el servidor registró la entrega de \texttt{confluent/x86\_64/ipxe.efi} a \texttt{10.0.0.13}:
+\begin{lstlisting}
+in.tftpd: tftp: client does not accept options
+in.tftpd: Client ::ffff:10.0.0.13 finished confluent/x86_64/ipxe.efi
+\end{lstlisting}
+El mensaje sobre opciones TFTP no se interpretó como fatal, pues la transferencia finalizó. Esta evidencia acredita únicamente que, en esa prueba, el servidor entregó el archivo al nodo. En esa misma secuencia se observó que el proceso alcanzó Anaconda, donde se produjo un fallo posterior al solicitar recursos HTTPS. En posteriores pruebas, los demás nodos alcanzarían el mismo estado de error.
+\evidencia{pxe_tftp.png}{Registro de transferencia de iPXE desde el nodo de administración.}
+
+\subsection{Fallo de validación TLS al descargar la imagen de instalación}
+Después de alcanzar Anaconda, el nodo intentó obtener la imagen de instalación desde una URL HTTPS con la dirección \texttt{10.0.0.1}:
+\begin{lstlisting}
+https://10.0.0.1/confluent-public/os/rocky-10.2-x86_64-default/
+  distribution/images/install.img
+curl: (60) SSL: no alternative certificate subject name
+matches target ip address '10.0.0.1'
+\end{lstlisting}
+También fallaron las solicitudes de \texttt{LiveOS/squashfs.img} y del archivo \texttt{kickstart}; Anaconda terminó sin encontrar una imagen principal válida. La causa identificada fue un \textbf{desajuste entre la IP de acceso y los nombres/direcciones incluidos en el certificado TLS}.
+
+El certificado presentado por el servidor tenía \texttt{CN=sms} y estaba emitido por una autoridad local de Confluent. Entre sus SAN figuraban \texttt{DNS:sms}, \texttt{192.168.64.3} y la dirección privada anterior \texttt{10.1.1.1}, pero \textbf{no figuraba \texttt{10.0.0.1}}.
+\begin{lstlisting}
+sudo openssl s_client -connect 10.0.0.1:443 -servername sms \
+  </dev/null 2>/dev/null | \
+  openssl x509 -noout -subject -issuer -ext subjectAltName
+\end{lstlisting}
+\evidencia{error_tls.png}{Error de validación del certificado durante la descarga de stage2.}
+
+\subsection{Alternativas investigadas para el certificado}
+Se evaluaron dos enfoques: generar las URLs con el nombre \texttt{sms}, ya presente en el certificado, o regenerar de forma controlada el certificado del servidor incluyendo \texttt{10.0.0.1} como SAN. También se verificó que \texttt{deployment.useinsecureprotocols} figuraba con el valor \texttt{firmware}; este ajuste no garantizaba que las descargas de Anaconda dejaran de utilizar HTTPS.
+
+Se investigó el atributo \texttt{deployment.apiarmed}, con valores como \texttt{once} y \texttt{continuous}, para descartar problemas de autorización de solicitudes. Sin embargo, se reconoció que este atributo \textbf{no corrige la validación del nombre/IP del certificado}. Se propuso probarlo a nivel de grupo:
+\begin{lstlisting}
+sudo nodegroupattrib compute deployment.apiarmed=continuous
+sudo nodegroupattrib compute deployment.apiarmed
+\end{lstlisting}
+Sin embargo, esto no resolvió el error ni logró que el valor quedara activo.
+
+\subsection{Búsqueda del origen de las URLs}
+Se propusieron búsquedas en los directorios de Confluent y TFTP para localizar referencias a \texttt{10.0.0.1} y \texttt{confluent-public}:
+\begin{lstlisting}
+sudo grep -Rni 'https://10.0.0.1' \
+  /var/lib/confluent /var/lib/tftpboot 2>/dev/null
+sudo grep -Rni 'confluent-public' \
+  /var/lib/confluent /var/lib/tftpboot 2>/dev/null | head -50
+\end{lstlisting}
+Las búsquedas tardaron demasiado y no produjeron resultados útiles durante la sesión. No se obtuvo evidencia suficiente para concluir si las URLs se almacenaban en archivos o eran generadas dinámicamente. Se decidió no modificar archivos de certificados ni configuraciones internas sin confirmar el mecanismo correcto.
+
+\subsection{Fallo posterior: ``No more network devices''}
+En una sesión posterior, los tres nodos mostraron un fallo de arranque por red que terminaba con el mensaje \texttt{No more network devices}. Se consideró que el error podía estar relacionado con el soporte PXE del adaptador virtual o la configuración del hipervisor, además de las etapas DHCP/TFTP/iPXE. No se obtuvo en esa sesión una traza completa que permitiera asignar una causa definitiva.
+%\evidencia{error_no_more_network.png}{Pantalla de fallo de arranque por red.}
+
+\section{Migración de c4 a VMware Workstation Pro 17}
+Por experiencias de otros equipos del laboratorio se decidió probar \texttt{c4} en VMware Workstation Pro 17 en lugar de Oracle VirtualBox. Los datos proporcionados por el nuevo sistema fueron:
+\begin{lstlisting}
+hostname: c4
+uname -m: x86_64
+Hypervisor vendor: VMware
+CPU(s): 4
+Socket(s): 4
+Core(s) per socket: 1
+Thread(s) per core: 1
+Mem: 7.5 GiB
+MAC: 00:0C:29:0B:E6:34
+\end{lstlisting}
+Se indicó actualizar la MAC registrada en Confluent sin cambiar la IP lógica del nodo:
+\begin{lstlisting}
+sudo nodeattrib c4 net.hwaddr=00:0c:29:0b:e6:34
+sudo nodeattrib c4 net.hwaddr
+sudo nodeattrib c4 net.ipv4_address
+sudo nodeattrib c4 deployment.pendingprofile
+\end{lstlisting}
+\textbf{La ejecución efectiva de estos comandos no quedó confirmada en la conversación.} La nueva MAC debe verificarse también contra el adaptador de VMware conectado a la red privada.
+
+\subsection{Problema de conectividad con VMware}
+En la nueva configuración, los pings entre \texttt{c4} y \texttt{sms} fallaron \textbf{en ambas direcciones}, pese a que los anfitriones estaban conectados mediante Ethernet al switch del laboratorio. Se recomendó revisar en VMware el modo \texttt{Bridged}, la selección explícita del adaptador Ethernet físico en \texttt{VMnet0} y las opciones \texttt{Connected} y \texttt{Connect at power on}. También se propuso comprobar la configuración IPv4 dentro del invitado.
+Finalmente se logró establecer la conexión de red mediante la configuración del puerto de la máquina virtual.
+\evidencia{confMVc4.png}{Configuración de red de VMware.}
+
+\section{Consulta de registros para diagnóstico}
+Como última actividad se preparó un procedimiento para consultar los logs de Linux y del hipervisor. En \texttt{sms} se recomendó observar eventos en tiempo real durante un intento de conexión o arranque:
+\begin{lstlisting}
+sudo journalctl -f
+sudo journalctl --since '15 minutes ago' | \
+  grep -Ei 'error|fail|dhcp|tftp|ipxe|network|link'
+sudo journalctl -u NetworkManager --since '15 minutes ago'
+\end{lstlisting}
+En \texttt{c4}, se recomendaron:
+\begin{lstlisting}
+sudo journalctl -b -p warning
+sudo journalctl -u NetworkManager --since '15 minutes ago'
+sudo journalctl -k --since '15 minutes ago' | \
+  grep -Ei 'link is|ethernet|vmxnet|network|firmware|fail|error'
+\end{lstlisting}
+Finalmente, se propuso revisar el archivo \texttt{vmware.log} en la carpeta de la máquina virtual, buscando eventos asociados con \texttt{ethernet}, \texttt{vmnet}, \texttt{failed} y \texttt{error}. No se proporcionaron todavía los registros de esa prueba, por lo que el origen del fallo de conectividad en VMware quedó pendiente.
+\evidencia{logs_vmware.png}{Fragmento de logs del anfitrión.}
+
+\section{Resultados y estado del laboratorio}
+\begin{table}[H]\centering\small\caption{Estado verificado al cierre del trabajo documentado.}
+\begin{tabular}{p{8.1cm}p{4.0cm}}\toprule
+Actividad & Estado \\\midrule
+Definición de arquitectura y direccionamiento & Realizada \\
+Preparación de sms con OpenHPC/Confluent & Avance documentado \\
+Importación de ISO Rocky 10.2 x86\_64 & Exitosa \\
+Registro de c2, c3 y c4 en Confluent & Realizado inicialmente \\
+Asociación de perfil de despliegue & Verificada inicialmente \\
+Transferencia de \texttt{ipxe.efi} a c4 & Confirmada en una prueba \\
+Descarga de imagen stage2 mediante HTTPS & Fallida: certificado TLS \\
+Arranque PXE de todos los nodos & Fallido en prueba posterior \\
+Conectividad c4--sms tras migración a VMware & Fallida en ambos sentidos \\
+Instalación completa de c2, c3 y c4 & Fallida \\
+Ejecución distribuida de trabajos con Slurm & Fallida \\\bottomrule
+\end{tabular}\end{table}
+
+\section{Análisis técnico}
+Los resultados muestran que la implementación avanzó más allá del registro de nodos: se importó correctamente una distribución x86\_64, se confirmó una transferencia TFTP de \texttt{ipxe.efi} a c4 y, en una prueba, se alcanzó Anaconda. Estos hitos son parciales y no equivalen a una instalación completa. Sin embargo, el proceso de aprovisionamiento no concluyó. Se identificó como problema principal una falla de identidad TLS cuando Anaconda accedió a \texttt{https://10.0.0.1}.
+
+La modificación de \texttt{deployment.apiarmed} no debe confundirse con una reparación del certificado; son mecanismos diferentes. Del mismo modo, el cambio de hipervisor puede alterar la compatibilidad de PXE o el puente de red, pero no modifica por sí mismo los SAN de un certificado emitido previamente. Para resolver el laboratorio es necesario validar por separado el enlace Ethernet, la configuración IPv4, la cadena DHCP--TFTP--iPXE y la entrega HTTPS de la imagen de instalación.
+
+\section{Conclusiones}
+La práctica permitió construir la base de un clúster heterogéneo con un nodo de administración ARM64 y nodos de cómputo x86\_64. El trabajo evidenció que el aprovisionamiento de máquinas virtuales depende tanto de la configuración de Confluent como de la compatibilidad PXE del hipervisor, el puente Ethernet, el direccionamiento y la validación TLS. La falla del certificado fue diagnosticada con evidencia concreta; la conectividad en VMware continuó sin resolverse al cierre del registro. Por tanto, el principal resultado del laboratorio fue la preparación de la infraestructura y la identificación sistemática de los bloqueos pendientes.
+
+\subsection{Conclusión Severo Rosales}
+Fue una práctica demandante que presentó dificultades técnicas imprevistas, particularmente al concretar la autenticación remota entre los nodos. Pese a no haber concluido el montaje del clúster por este percance, la actividad sirvió para dimensionar la importancia de la configuración de red y la seguridad en entornos distribuidos.
+
+\subsection{Conclusión Diego Tapia}
+A pesar de no lograr completar la configuración del clúster, pude comprender de mejor manera el funcionamiento interno del sistema y los componentes que requiere. Creo que fue satisfactorio resolver los problemas que iban sucediendo y aprender las causas de éstos, aunque nos quedamos sin tiempo para solucionarlos todos.
+
+\subsection{Conclusión Eduardo Ledezma}
+La práctica del cluster fue interesante como desafiante, la manera en la que intentamos conectar computadoras independientes a través de una red para que estas puedan trabajar en conjunto por medio de una máquina virtual fue todo un reto. A pesar de no concluir la práctica de la manera deseada nos ayudó a reforzar el conocimiento sobre configuración de nodos y head-nodes de un cluster computacional.
+
+\subsection{Conclusión Jorge Saldaña}
+Me pareció una práctica muy interesante, motivadora y actualizada. Por supuesto me frustró que no pudiéramos alcanzar el objetivo final, sobre todo cuando parecía que habíamos realizado correctamente los pasos de configuración inicial y cuando otro equipo sí lo logró.
+Creo que la configuración de nuestra práctica fue muy experimental, en el sentido de la utilización de máquinas virtuales y la diversidad de nuestras arquitecturas de procesador; la novedad de nuestras condiciones implicaba también el riesgo de éxito en la primera iteración del experimento.
+Un primer acercamiento a la prática del súper computo, me encantaría repetirlo de nuevo, tal vez con máquinas físicas.
+
+\end{document}
